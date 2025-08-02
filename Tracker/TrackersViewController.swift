@@ -25,7 +25,7 @@ class TrackersViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = UIColor(named: "White")
+        view.backgroundColor = UIColor(named: "WhiteDay")
         setupNavigationBar()
         setupAddButton()
         setupDateButton()
@@ -74,21 +74,33 @@ class TrackersViewController: UIViewController {
         dateFormatter.dateFormat = "dd.MM.yy"
         let currentDate = Date()
         let dateString = dateFormatter.string(from: currentDate)
-        dateButton.setTitle(dateString, for: .normal)
         dateButton.setTitleColor(UIColor(named: "BlackDay"), for: .normal)
         dateButton.titleLabel?.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .regular)
         dateButton.titleLabel?.textAlignment = .right
+        
+        // Настройка line-height как в макете (22px)
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineHeightMultiple = 22.0 / 17.0 // 22px / 17px = 1.294
+        let attributedString = NSAttributedString(
+            string: dateString,
+            attributes: [
+                .paragraphStyle: paragraphStyle,
+                .font: dateButton.titleLabel?.font ?? UIFont.systemFont(ofSize: 17),
+                .foregroundColor: UIColor(named: "BlackDay") ?? UIColor.black
+            ]
+        )
+        dateButton.setAttributedTitle(attributedString, for: .normal)
         dateButton.backgroundColor = UIColor(named: "LightGray")
         dateButton.layer.cornerRadius = 8
         dateButton.alpha = 1.0
-        dateButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
+        dateButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         dateButton.addTarget(self, action: #selector(dateButtonTapped), for: .touchUpInside)
         view.addSubview(dateButton)
         
         NSLayoutConstraint.activate([
             dateButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
             dateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            dateButton.widthAnchor.constraint(equalToConstant: 90),
+            dateButton.widthAnchor.constraint(equalToConstant: 88),
             dateButton.heightAnchor.constraint(equalToConstant: 34)
         ])
     }
@@ -164,8 +176,9 @@ class TrackersViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func addButtonTapped() {
-        // Пока что ничего не происходит - реализацию логики выполним в следующих уроках
-        print("Add button tapped")
+        let createHabitViewController = CreateHabitViewController()
+        createHabitViewController.modalPresentationStyle = .fullScreen
+        present(createHabitViewController, animated: true)
     }
     
     @objc private func dateButtonTapped() {
