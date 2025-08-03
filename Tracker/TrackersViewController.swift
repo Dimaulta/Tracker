@@ -19,6 +19,8 @@ class TrackersViewController: UIViewController {
     private let emptyStateImageView = UIImageView()
     private let emptyStateLabel = UILabel()
     
+
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -177,7 +179,7 @@ class TrackersViewController: UIViewController {
     
     @objc private func addButtonTapped() {
         let createHabitViewController = CreateHabitViewController()
-        createHabitViewController.modalPresentationStyle = .fullScreen
+        createHabitViewController.modalPresentationStyle = .pageSheet
         present(createHabitViewController, animated: true)
     }
     

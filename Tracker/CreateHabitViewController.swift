@@ -206,7 +206,7 @@ class CreateHabitViewController: UIViewController {
             characterLimitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             // Контейнер категории и расписания
-            categoryContainerView.topAnchor.constraint(equalTo: view.topAnchor, constant: 237),
+            categoryContainerView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 20),
             categoryContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             categoryContainerView.widthAnchor.constraint(equalToConstant: 343),
             categoryContainerView.heightAnchor.constraint(equalToConstant: 150),
@@ -262,6 +262,8 @@ class CreateHabitViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
+
+    
     private func updateCreateButtonState() {
         if isFormValid {
             createButton.backgroundColor = UIColor(named: "BlackDay")
@@ -282,6 +284,8 @@ class CreateHabitViewController: UIViewController {
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
+    
+
     
     @objc private func keyboardWillShow(notification: NSNotification) {
         // Логика для скролла при появлении клавиатуры
@@ -331,6 +335,8 @@ class CreateHabitViewController: UIViewController {
         dismiss(animated: true)
     }
 }
+
+
 
 // MARK: - UITextFieldDelegate
 
