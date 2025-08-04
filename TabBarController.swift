@@ -13,6 +13,9 @@ class TabBarController: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+
+        
         setupTabBar()
         setupTopBorder()
     }

@@ -23,6 +23,9 @@ class TrackersViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+
+        
         setupUI()
     }
     
@@ -30,10 +33,10 @@ class TrackersViewController: UIViewController {
         view.backgroundColor = UIColor(named: "WhiteDay")
         setupNavigationBar()
         setupAddButton()
-        setupDateButton()
         setupTitle()
         setupSearchBar()
         setupEmptyState()
+        setupDateButton() // Перемещаем в конец, чтобы кнопка была поверх всех элементов
     }
     
     private func setupNavigationBar() {
@@ -97,6 +100,7 @@ class TrackersViewController: UIViewController {
         dateButton.alpha = 1.0
         dateButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         dateButton.addTarget(self, action: #selector(dateButtonTapped), for: .touchUpInside)
+        dateButton.isUserInteractionEnabled = true
         view.addSubview(dateButton)
         
         NSLayoutConstraint.activate([
@@ -184,7 +188,7 @@ class TrackersViewController: UIViewController {
     }
     
     @objc private func dateButtonTapped() {
-        // Пока что ничего не происходит - реализацию логики выполним в следующих уроках
-        print("Date button tapped")
+
+        // Здесь можно добавить логику для выбора даты
     }
 } 
