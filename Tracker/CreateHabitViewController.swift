@@ -37,6 +37,10 @@ class CreateHabitViewController: UIViewController {
             updateCreateButtonState()
         }
     }
+    private var selectedDays: Set<Int> = []
+    
+    // MARK: - Delegate
+    weak var delegate: CreateHabitViewControllerDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -360,13 +364,30 @@ class CreateHabitViewController: UIViewController {
         dismiss(animated: true)
     }
     
-    @objc private func createButtonTapped() {
-        // Логика создания привычки
-
+        @objc private func createButtonTapped() {
+        // Создаем привычку
+        let habit = Habit(
+            name: nameTextField.text ?? "",
+            category: "Важное", // Устанавливаем категорию
+            schedule: Array(selectedDays),
+            emoji: "😪", // Пока фиксированный эмодзи
+            color: "Green" // Используем Green цвет
+        )
+        
+        // Передаем привычку обратно через делегат
+        delegate?.didCreateHabit(habit)
+        
         dismiss(animated: true)
     }
     
-        private func updateScheduleValue(with selectedDays: Set<Int>) {
+        private func updateScheduleValue(with days: Set<Int>) {
+        selectedDays = days
+        
+        // Если не выбран ни один день, ничего не показываем
+        if selectedDays.isEmpty {
+            scheduleValueLabel.isHidden = true
+            return
+        }
         // Если не выбран ни один день, ничего не показываем
         if selectedDays.isEmpty {
             scheduleValueLabel.isHidden = true

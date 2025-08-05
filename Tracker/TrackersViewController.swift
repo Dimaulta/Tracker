@@ -15,18 +15,22 @@ class TrackersViewController: UIViewController {
     private let searchContainerView = UIView()
     private let searchTextField = UITextField()
     private let searchIconView = UIImageView()
-    private let dateButton = UIButton(type: .system)
+    private let datePicker = UIDatePicker()
     private let emptyStateImageView = UIImageView()
     private let emptyStateLabel = UILabel()
+    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    
+    // MARK: - Data
+    private var habits: [Habit] = []
+    private var selectedDate: Date = Date()
     
 
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-
-        
         setupUI()
+        loadHabits()
     }
     
     private func setupUI() {
@@ -35,8 +39,9 @@ class TrackersViewController: UIViewController {
         setupAddButton()
         setupTitle()
         setupSearchBar()
+        setupDatePicker()
+        setupCollectionView()
         setupEmptyState()
-        setupDateButton() // Перемещаем в конец, чтобы кнопка была поверх всех элементов
     }
     
     private func setupNavigationBar() {
@@ -73,41 +78,19 @@ class TrackersViewController: UIViewController {
         ])
     }
     
-    private func setupDateButton() {
-        dateButton.translatesAutoresizingMaskIntoConstraints = false
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yy"
-        let currentDate = Date()
-        let dateString = dateFormatter.string(from: currentDate)
-        dateButton.setTitleColor(UIColor(named: "BlackDay"), for: .normal)
-        dateButton.titleLabel?.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .regular)
-        dateButton.titleLabel?.textAlignment = .right
-        
-        // Настройка line-height как в макете (22px)
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 22.0 / 17.0 // 22px / 17px = 1.294
-        let attributedString = NSAttributedString(
-            string: dateString,
-            attributes: [
-                .paragraphStyle: paragraphStyle,
-                .font: dateButton.titleLabel?.font ?? UIFont.systemFont(ofSize: 17),
-                .foregroundColor: UIColor(named: "BlackDay") ?? UIColor.black
-            ]
-        )
-        dateButton.setAttributedTitle(attributedString, for: .normal)
-        dateButton.backgroundColor = UIColor(named: "LightGray")
-        dateButton.layer.cornerRadius = 8
-        dateButton.alpha = 1.0
-        dateButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
-        dateButton.addTarget(self, action: #selector(dateButtonTapped), for: .touchUpInside)
-        dateButton.isUserInteractionEnabled = true
-        view.addSubview(dateButton)
+    private func setupDatePicker() {
+        datePicker.translatesAutoresizingMaskIntoConstraints = false
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .compact
+        datePicker.locale = Locale(identifier: "ru_RU")
+        datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
+        view.addSubview(datePicker)
         
         NSLayoutConstraint.activate([
-            dateButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
-            dateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            dateButton.widthAnchor.constraint(equalToConstant: 88),
-            dateButton.heightAnchor.constraint(equalToConstant: 34)
+            datePicker.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
+            datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            datePicker.widthAnchor.constraint(equalToConstant: 120),
+            datePicker.heightAnchor.constraint(equalToConstant: 34)
         ])
     }
     
@@ -183,12 +166,124 @@ class TrackersViewController: UIViewController {
     
     @objc private func addButtonTapped() {
         let createHabitViewController = CreateHabitViewController()
+        createHabitViewController.delegate = self
         createHabitViewController.modalPresentationStyle = .pageSheet
         present(createHabitViewController, animated: true)
     }
     
-    @objc private func dateButtonTapped() {
+    @objc private func datePickerValueChanged() {
+        selectedDate = datePicker.date
+        updateUI()
+    }
+    
+    private func setupCollectionView() {
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = UIColor.clear
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(HabitCollectionViewCell.self, forCellWithReuseIdentifier: HabitCollectionViewCell.identifier)
+        
+        // Настройка layout
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.scrollDirection = .vertical
+            layout.minimumInteritemSpacing = 8
+            layout.minimumLineSpacing = 8
+            layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        }
+        
+        view.addSubview(collectionView)
+        
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: searchContainerView.bottomAnchor, constant: 20),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+        ])
+    }
+    
+    // MARK: - Data Management
+    private func loadHabits() {
+        if let data = UserDefaults.standard.data(forKey: "habits"),
+           let savedHabits = try? JSONDecoder().decode([Habit].self, from: data) {
+            habits = savedHabits
+            updateUI()
+        }
+    }
+    
+    private func saveHabits() {
+        if let data = try? JSONEncoder().encode(habits) {
+            UserDefaults.standard.set(data, forKey: "habits")
+        }
+    }
+    
+    private func addHabit(_ habit: Habit) {
+        habits.append(habit)
+        saveHabits()
+        updateUI()
+    }
+    
+    private func updateUI() {
+        collectionView.reloadData()
+        
+        // Показываем/скрываем пустое состояние
+        let isEmpty = habits.isEmpty
+        emptyStateImageView.isHidden = !isEmpty
+        emptyStateLabel.isHidden = !isEmpty
+        collectionView.isHidden = isEmpty
+    }
+    
+    // MARK: - Habit Management
+    private func toggleHabitCompletion(for habit: Habit) {
+        guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
+        
+        var updatedHabit = habit
+        
+        if habit.isCompleted(for: selectedDate) {
+            // Убираем отметку
+            updatedHabit.completedDates.removeAll { date in
+                Calendar.current.isDate(date, inSameDayAs: selectedDate)
+            }
+        } else {
+            // Добавляем отметку только если не будущая дата
+            if habit.canBeCompleted(for: selectedDate) {
+                updatedHabit.completedDates.append(selectedDate)
+            }
+        }
+        
+        habits[index] = updatedHabit
+        saveHabits()
+        updateUI()
+    }
+}
 
-        // Здесь можно добавить логику для выбора даты
+// MARK: - UICollectionViewDataSource
+extension TrackersViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return habits.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HabitCollectionViewCell.identifier, for: indexPath) as! HabitCollectionViewCell
+        let habit = habits[indexPath.item]
+        cell.configure(with: habit, selectedDate: selectedDate)
+        cell.onCompletionToggled = { [weak self] habit in
+            self?.toggleHabitCompletion(for: habit)
+        }
+        return cell
+    }
+}
+
+// MARK: - UICollectionViewDelegateFlowLayout
+extension TrackersViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = (collectionView.bounds.width - 48) / 2 // 2 колонки с отступами
+        return CGSize(width: width, height: 160) // Увеличиваем высоту для кнопки
+    }
+}
+
+// MARK: - CreateHabitViewControllerDelegate
+extension TrackersViewController: CreateHabitViewControllerDelegate {
+    func didCreateHabit(_ habit: Habit) {
+        addHabit(habit)
     }
 } 
