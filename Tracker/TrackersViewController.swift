@@ -22,7 +22,7 @@ class TrackersViewController: UIViewController {
     
     // MARK: - Data
     private var habits: [Habit] = []
-    private var selectedDate: Date = Date()
+    var selectedDate: Date = Date()
     
 
     
@@ -82,8 +82,9 @@ class TrackersViewController: UIViewController {
         datePicker.translatesAutoresizingMaskIntoConstraints = false
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
+        datePicker.date = selectedDate
         datePicker.locale = Locale(identifier: "ru_RU")
-        datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
+        datePicker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
         view.addSubview(datePicker)
         
         NSLayoutConstraint.activate([
@@ -171,8 +172,8 @@ class TrackersViewController: UIViewController {
         present(createHabitViewController, animated: true)
     }
     
-    @objc private func datePickerValueChanged() {
-        selectedDate = datePicker.date
+    @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
+        selectedDate = sender.date
         updateUI()
     }
     
@@ -222,7 +223,7 @@ class TrackersViewController: UIViewController {
         updateUI()
     }
     
-    private func updateUI() {
+    func updateUI() {
         collectionView.reloadData()
         
         // Показываем/скрываем пустое состояние
