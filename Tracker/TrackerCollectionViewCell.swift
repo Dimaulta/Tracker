@@ -1,5 +1,5 @@
 //
-//  HabitCollectionViewCell.swift
+//  TrackerCollectionViewCell.swift
 //  Tracker
 //
 //  Created by Ульта on 26.07.2025.
@@ -7,21 +7,21 @@
 
 import UIKit
 
-class HabitCollectionViewCell: UICollectionViewCell {
+class TrackerCollectionViewCell: UICollectionViewCell {
     
     // MARK: - UI Elements
     private let containerView = UIView()
-    private let headerLabel = UILabel() // Заголовок секции
+    private let headerLabel = UILabel()
     private let emojiLabel = UILabel()
     private let nameLabel = UILabel()
     private let daysLabel = UILabel()
     private let completionButton = UIButton(type: .system)
     
     // MARK: - Properties
-    static let identifier = "HabitCell"
-    private var habit: Habit?
+    static let identifier = "TrackerCell"
+    private var tracker: Tracker?
     private var selectedDate: Date = Date()
-    var onCompletionToggled: ((Habit) -> Void)?
+    var onCompletionToggled: ((Tracker) -> Void)?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -33,23 +33,20 @@ class HabitCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupUI() {
-        // Настройка контейнера
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.layer.cornerRadius = 16
         containerView.layer.borderWidth = 0.5
         containerView.layer.borderColor = UIColor(named: "Gray")?.withAlphaComponent(0.3).cgColor
         contentView.addSubview(containerView)
         
-        // Настройка заголовка - над зеленой областью
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
         headerLabel.textColor = UIColor(named: "BlackDay")
         headerLabel.textAlignment = .left
         headerLabel.numberOfLines = 1
         
-        // Настройка line-height как в макете (18px)
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 18.0 / 19.0 // 18px / 19px = 0.947
+        paragraphStyle.lineHeightMultiple = 18.0 / 19.0
         paragraphStyle.alignment = .left
         let attributedString = NSAttributedString(
             string: headerLabel.text ?? "",
@@ -60,9 +57,8 @@ class HabitCollectionViewCell: UICollectionViewCell {
             ]
         )
         headerLabel.attributedText = attributedString
-        contentView.addSubview(headerLabel) // Добавляем к contentView, а не к containerView
+        contentView.addSubview(headerLabel)
         
-        // Настройка эмодзи - в левый угол
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
         emojiLabel.font = UIFont.systemFont(ofSize: 16)
         emojiLabel.textAlignment = .center
@@ -71,7 +67,6 @@ class HabitCollectionViewCell: UICollectionViewCell {
         emojiLabel.clipsToBounds = true
         containerView.addSubview(emojiLabel)
         
-        // Настройка названия привычки - внизу по левому краю
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         nameLabel.textColor = UIColor.white
@@ -79,14 +74,12 @@ class HabitCollectionViewCell: UICollectionViewCell {
         nameLabel.numberOfLines = 2
         containerView.addSubview(nameLabel)
         
-        // Настройка дней - по левому краю
         daysLabel.translatesAutoresizingMaskIntoConstraints = false
         daysLabel.font = UIFont(name: "SFPro-Regular", size: 12) ?? UIFont.systemFont(ofSize: 12)
         daysLabel.textColor = UIColor(named: "BlackDay")
         daysLabel.textAlignment = .left
         contentView.addSubview(daysLabel)
         
-        // Настройка кнопки завершения
         completionButton.translatesAutoresizingMaskIntoConstraints = false
         completionButton.layer.cornerRadius = 17
         completionButton.layer.borderWidth = 2
@@ -95,33 +88,28 @@ class HabitCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(completionButton)
         
         NSLayoutConstraint.activate([
-            // Заголовок - над зеленой областью
             headerLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             headerLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             headerLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+            headerLabel.heightAnchor.constraint(equalToConstant: 18),
             
-            // Контейнер - под заголовком
             containerView.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 8),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             containerView.heightAnchor.constraint(equalToConstant: 90),
             
-            // Эмодзи - в левый угол
             emojiLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             emojiLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             emojiLabel.widthAnchor.constraint(equalToConstant: 24),
             emojiLabel.heightAnchor.constraint(equalToConstant: 24),
             
-            // Название привычки - внизу по левому краю
             nameLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
             nameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             nameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             
-            // Дни - по левому краю на уровне кнопки
             daysLabel.centerYAnchor.constraint(equalTo: completionButton.centerYAnchor),
             daysLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             
-            // Кнопка завершения - справа от дней на том же уровне
             completionButton.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 8),
             completionButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             completionButton.widthAnchor.constraint(equalToConstant: 34),
@@ -130,23 +118,21 @@ class HabitCollectionViewCell: UICollectionViewCell {
     }
     
     @objc private func completionButtonTapped() {
-        guard let habit = habit else { return }
-        onCompletionToggled?(habit)
+        guard let tracker = tracker else { return }
+        onCompletionToggled?(tracker)
     }
     
-    func configure(with habit: Habit, selectedDate: Date) {
-        self.habit = habit
+    func configure(with tracker: Tracker, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
+        self.tracker = tracker
         self.selectedDate = selectedDate
         
-        // Настройка заголовка
-        headerLabel.text = habit.category
+        headerLabel.text = "Важное"
         
-        // Настройка line-height как в макете (18px)
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 18.0 / 19.0 // 18px / 19px = 0.947
+        paragraphStyle.lineHeightMultiple = 18.0 / 19.0
         paragraphStyle.alignment = .left
         let attributedString = NSAttributedString(
-            string: habit.category,
+            string: "Важное",
             attributes: [
                 .paragraphStyle: paragraphStyle,
                 .font: headerLabel.font ?? UIFont.boldSystemFont(ofSize: 19),
@@ -155,70 +141,52 @@ class HabitCollectionViewCell: UICollectionViewCell {
         )
         headerLabel.attributedText = attributedString
         
-        // Настройка эмодзи
-        emojiLabel.text = habit.emoji
+        emojiLabel.text = tracker.emoji
         
-        // Настройка названия привычки
-        nameLabel.text = habit.name
+        nameLabel.text = tracker.name
         
-        // Настройка текста дней
-        let completedCount = habit.completedCount
         let dayText = getDayText(for: completedCount)
         daysLabel.text = "\(completedCount) \(dayText)"
         
-        // Настройка цвета фона
-        containerView.backgroundColor = UIColor(named: "Green") // Используем Green из ассетов
+        containerView.backgroundColor = UIColor(named: tracker.color) ?? UIColor(named: "Green")
         
-        // Обновляем кнопку завершения
-        updateCompletionButton()
+        updateCompletionButton(isCompleted: isCompleted)
     }
     
-    private func updateCompletionButton() {
-        guard let habit = habit else { return }
-        
-        let isCompleted = habit.isCompleted(for: selectedDate)
-        let canBeCompleted = habit.canBeCompleted(for: selectedDate)
-        
-        // Устанавливаем базовые параметры кнопки
+    private func updateCompletionButton(isCompleted: Bool) {
         completionButton.layer.cornerRadius = 17
         completionButton.layer.borderWidth = 2
         completionButton.layer.borderColor = UIColor.white.cgColor
         
-        // Получаем цвет ячейки для кнопки
-        let cellColor = UIColor(named: "Green") ?? UIColor.systemGreen
+        let cellColor = UIColor(named: tracker?.color ?? "Green") ?? UIColor.systemGreen
         
         if isCompleted {
-            // Показываем галочку с прозрачностью 30%
             completionButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
             completionButton.tintColor = UIColor.white
             completionButton.backgroundColor = cellColor
-            completionButton.alpha = 0.3 // Прозрачность 30%
+            completionButton.alpha = 0.3
         } else {
-            // Показываем плюс
             completionButton.setImage(UIImage(systemName: "plus"), for: .normal)
             completionButton.tintColor = UIColor.white
             completionButton.backgroundColor = cellColor
-            completionButton.alpha = 1.0 // Полная видимость
+            completionButton.alpha = 1.0
         }
         
-        // Отключаем кнопку для будущих дат
-        completionButton.isEnabled = canBeCompleted
-        if !canBeCompleted {
-            completionButton.alpha = 0.5
-        }
-        
-        // Убеждаемся, что кнопка видна
         completionButton.isHidden = false
-        
-        // Добавляем отладочную информацию
-        print("Кнопка завершения: isHidden = \(completionButton.isHidden), alpha = \(completionButton.alpha), frame = \(completionButton.frame)")
     }
     
     private func getDayText(for count: Int) -> String {
-        switch count {
+        let lastDigit = count % 10
+        let lastTwoDigits = count % 100
+        
+        if lastTwoDigits >= 11 && lastTwoDigits <= 19 {
+            return "дней"
+        }
+        
+        switch lastDigit {
         case 1:
             return "день"
-        case 2...4:
+        case 2, 3, 4:
             return "дня"
         default:
             return "дней"

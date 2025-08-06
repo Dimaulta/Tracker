@@ -55,9 +55,8 @@ class ScheduleViewController: UIViewController {
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
         
-        // Настройка line-height как в макете (22px)
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 22.0 / 16.0 // 22px / 16px = 1.375
+        paragraphStyle.lineHeightMultiple = 22.0 / 16.0
         paragraphStyle.alignment = .center
         let attributedString = NSAttributedString(
             string: "Расписание",
@@ -127,7 +126,6 @@ class ScheduleViewController: UIViewController {
     }
     
     @objc private func doneButtonTapped() {
-        // Передаем выбранные дни обратно
         onScheduleSelected?(selectedDays)
         dismiss(animated: true)
     }
@@ -148,9 +146,8 @@ extension ScheduleViewController: UITableViewDataSource {
         cell.backgroundColor = UIColor.clear
         cell.selectionStyle = .none
         
-        // Настройка line-height как в макете (22px)
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 22.0 / 17.0 // 22px / 17px = 1.294
+        paragraphStyle.lineHeightMultiple = 22.0 / 17.0
         let attributedString = NSAttributedString(
             string: daysOfWeek[indexPath.row],
             attributes: [
@@ -161,11 +158,21 @@ extension ScheduleViewController: UITableViewDataSource {
         )
         cell.textLabel?.attributedText = attributedString
         
-        // Создаем переключатель
+        cell.layer.masksToBounds = true
+        cell.layer.cornerRadius = 16
+        
+        if indexPath.row == 0 {
+            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        } else if indexPath.row == daysOfWeek.count - 1 {
+            cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        } else {
+            cell.layer.maskedCorners = []
+        }
+        
         let switchView = UISwitch()
         switchView.tag = indexPath.row
         switchView.isOn = selectedDays.contains(indexPath.row)
-        switchView.onTintColor = UIColor(named: "Blue") // Цвет из ассетов
+        switchView.onTintColor = UIColor(named: "Blue")
         switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
         cell.accessoryView = switchView
         
@@ -176,11 +183,10 @@ extension ScheduleViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 extension ScheduleViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 75 // Высота как в макете
+        return 75
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        // Скрываем разделитель для последней ячейки
         if indexPath.row == daysOfWeek.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
         }

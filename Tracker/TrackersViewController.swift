@@ -21,16 +21,33 @@ class TrackersViewController: UIViewController {
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
     // MARK: - Data
-    private var habits: [Habit] = []
-    var selectedDate: Date = Date()
+    private var categories: [TrackerCategory] = []
+    private var completedTrackers: [TrackerRecord] = []
+    private var completedTrackerIds: Set<UUID> = []
+    var currentDate: Date = Date()
     
-
+    // MARK: - Computed Properties
+    private var visibleTrackers: [Tracker] {
+        var allTrackers: [Tracker] = []
+        for category in categories {
+            allTrackers.append(contentsOf: category.trackers)
+        }
+        return allTrackers.filter { $0.isScheduled(for: currentDate) }
+    }
+    
+    private func getCompletedCount(for tracker: Tracker) -> Int {
+        return completedTrackers.filter { $0.trackerId == tracker.id }.count
+    }
+    
+    private func isTrackerCompleted(for tracker: Tracker) -> Bool {
+        return completedTrackers.contains { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupUI()
-        loadHabits()
+        loadData()
     }
     
     private func setupUI() {
@@ -82,7 +99,7 @@ class TrackersViewController: UIViewController {
         datePicker.translatesAutoresizingMaskIntoConstraints = false
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
-        datePicker.date = selectedDate
+        datePicker.date = currentDate
         datePicker.locale = Locale(identifier: "ru_RU")
         datePicker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
         view.addSubview(datePicker)
@@ -96,20 +113,17 @@ class TrackersViewController: UIViewController {
     }
     
     private func setupSearchBar() {
-        // Настройка контейнера
         searchContainerView.translatesAutoresizingMaskIntoConstraints = false
         searchContainerView.backgroundColor = UIColor(named: "LightGray")
         searchContainerView.layer.cornerRadius = 10
         searchContainerView.clipsToBounds = true
         view.addSubview(searchContainerView)
         
-        // Настройка иконки лупы
         searchIconView.translatesAutoresizingMaskIntoConstraints = false
         searchIconView.image = UIImage(systemName: "magnifyingglass")
         searchIconView.tintColor = UIColor(named: "Gray")
         searchContainerView.addSubview(searchIconView)
         
-        // Настройка текстового поля
         searchTextField.translatesAutoresizingMaskIntoConstraints = false
         searchTextField.placeholder = "Поиск"
         searchTextField.backgroundColor = .clear
@@ -119,19 +133,16 @@ class TrackersViewController: UIViewController {
         searchContainerView.addSubview(searchTextField)
         
         NSLayoutConstraint.activate([
-            // Контейнер
             searchContainerView.topAnchor.constraint(equalTo: view.topAnchor, constant: 136),
             searchContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             searchContainerView.heightAnchor.constraint(equalToConstant: 36),
             
-            // Иконка лупы
             searchIconView.topAnchor.constraint(equalTo: searchContainerView.topAnchor, constant: 10),
             searchIconView.leadingAnchor.constraint(equalTo: searchContainerView.leadingAnchor, constant: 8),
             searchIconView.widthAnchor.constraint(equalToConstant: 15.63),
             searchIconView.heightAnchor.constraint(equalToConstant: 15.78),
             
-            // Текстовое поле
             searchTextField.topAnchor.constraint(equalTo: searchContainerView.topAnchor, constant: 7),
             searchTextField.leadingAnchor.constraint(equalTo: searchContainerView.leadingAnchor, constant: 30),
             searchTextField.trailingAnchor.constraint(equalTo: searchContainerView.trailingAnchor, constant: -8),
@@ -173,7 +184,7 @@ class TrackersViewController: UIViewController {
     }
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
-        selectedDate = sender.date
+        currentDate = sender.date
         updateUI()
     }
     
@@ -182,9 +193,8 @@ class TrackersViewController: UIViewController {
         collectionView.backgroundColor = UIColor.clear
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.register(HabitCollectionViewCell.self, forCellWithReuseIdentifier: HabitCollectionViewCell.identifier)
+        collectionView.register(TrackerCollectionViewCell.self, forCellWithReuseIdentifier: TrackerCollectionViewCell.identifier)
         
-        // Настройка layout
         if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
             layout.scrollDirection = .vertical
             layout.minimumInteritemSpacing = 8
@@ -203,56 +213,65 @@ class TrackersViewController: UIViewController {
     }
     
     // MARK: - Data Management
-    private func loadHabits() {
-        if let data = UserDefaults.standard.data(forKey: "habits"),
-           let savedHabits = try? JSONDecoder().decode([Habit].self, from: data) {
-            habits = savedHabits
-            updateUI()
+    private func loadData() {
+        if let data = UserDefaults.standard.data(forKey: "categories"),
+           let savedCategories = try? JSONDecoder().decode([TrackerCategory].self, from: data) {
+            categories = savedCategories
+        }
+        if let data = UserDefaults.standard.data(forKey: "completedTrackers"),
+           let savedCompletedTrackers = try? JSONDecoder().decode([TrackerRecord].self, from: data) {
+            completedTrackers = savedCompletedTrackers
+            completedTrackerIds = Set(completedTrackers.map(\.trackerId))
+        }
+        updateUI()
+    }
+    
+    private func saveData() {
+        if let data = try? JSONEncoder().encode(categories) {
+            UserDefaults.standard.set(data, forKey: "categories")
+        }
+        if let data = try? JSONEncoder().encode(completedTrackers) {
+            UserDefaults.standard.set(data, forKey: "completedTrackers")
         }
     }
     
-    private func saveHabits() {
-        if let data = try? JSONEncoder().encode(habits) {
-            UserDefaults.standard.set(data, forKey: "habits")
-        }
-    }
-    
-    private func addHabit(_ habit: Habit) {
-        habits.append(habit)
-        saveHabits()
+    private func addTracker(_ tracker: Tracker) {
+        let category = TrackerCategory(title: "Важное", trackers: [tracker])
+        categories.append(category)
+        saveData()
         updateUI()
     }
     
     func updateUI() {
         collectionView.reloadData()
         
-        // Показываем/скрываем пустое состояние
-        let isEmpty = habits.isEmpty
+        let isEmpty = visibleTrackers.isEmpty
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
         collectionView.isHidden = isEmpty
     }
     
-    // MARK: - Habit Management
-    private func toggleHabitCompletion(for habit: Habit) {
-        guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
+    // MARK: - Tracker Management
+    private func toggleTrackerCompletion(for tracker: Tracker) {
+        let calendar = Calendar.current
+        let today = Date()
+        let canBeCompleted = calendar.compare(currentDate, to: today, toGranularity: .day) != .orderedDescending
         
-        var updatedHabit = habit
-        
-        if habit.isCompleted(for: selectedDate) {
-            // Убираем отметку
-            updatedHabit.completedDates.removeAll { date in
-                Calendar.current.isDate(date, inSameDayAs: selectedDate)
-            }
-        } else {
-            // Добавляем отметку только если не будущая дата
-            if habit.canBeCompleted(for: selectedDate) {
-                updatedHabit.completedDates.append(selectedDate)
-            }
+        if !canBeCompleted {
+            return
         }
         
-        habits[index] = updatedHabit
-        saveHabits()
+        let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
+        
+        if completedTrackerIds.contains(tracker.id) {
+            completedTrackers.removeAll { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
+            completedTrackerIds.remove(tracker.id)
+        } else {
+            completedTrackers.append(record)
+            completedTrackerIds.insert(tracker.id)
+        }
+        
+        saveData()
         updateUI()
     }
 }
@@ -260,15 +279,18 @@ class TrackersViewController: UIViewController {
 // MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return habits.count
+        return visibleTrackers.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HabitCollectionViewCell.identifier, for: indexPath) as! HabitCollectionViewCell
-        let habit = habits[indexPath.item]
-        cell.configure(with: habit, selectedDate: selectedDate)
-        cell.onCompletionToggled = { [weak self] habit in
-            self?.toggleHabitCompletion(for: habit)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCollectionViewCell.identifier, for: indexPath) as! TrackerCollectionViewCell
+        let tracker = visibleTrackers[indexPath.item]
+        let completedCount = getCompletedCount(for: tracker)
+        let isCompleted = isTrackerCompleted(for: tracker)
+        
+        cell.configure(with: tracker, selectedDate: currentDate, isCompleted: isCompleted, completedCount: completedCount)
+        cell.onCompletionToggled = { [weak self] tracker in
+            self?.toggleTrackerCompletion(for: tracker)
         }
         return cell
     }
@@ -277,14 +299,16 @@ extension TrackersViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = (collectionView.bounds.width - 48) / 2 // 2 колонки с отступами
-        return CGSize(width: width, height: 160) // Увеличиваем высоту для кнопки
+        let availableWidth = collectionView.bounds.width - 32
+        let spacing: CGFloat = 8
+        let cellWidth = (availableWidth - spacing) / 2
+        return CGSize(width: cellWidth, height: 160)
     }
 }
 
 // MARK: - CreateHabitViewControllerDelegate
 extension TrackersViewController: CreateHabitViewControllerDelegate {
-    func didCreateHabit(_ habit: Habit) {
-        addHabit(habit)
+    func didCreateTracker(_ tracker: Tracker) {
+        addTracker(tracker)
     }
 } 

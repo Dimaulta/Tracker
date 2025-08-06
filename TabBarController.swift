@@ -13,11 +13,32 @@ class TabBarController: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-
-        
         setupTabBar()
         setupTopBorder()
+    }
+    
+    private func setupTabBar() {
+        let trackersViewController = TrackersViewController()
+        let trackersNavigationController = UINavigationController(rootViewController: trackersViewController)
+        trackersNavigationController.tabBarItem = UITabBarItem(
+            title: "Трекеры",
+            image: UIImage(named: "TabBarActive"),
+            selectedImage: UIImage(named: "TabBarActive")
+        )
+        
+        let statisticsViewController = StatisticsViewController()
+        let statisticsNavigationController = UINavigationController(rootViewController: statisticsViewController)
+        statisticsNavigationController.tabBarItem = UITabBarItem(
+            title: "Статистика",
+            image: UIImage(named: "TabBarStat"),
+            selectedImage: UIImage(named: "TabBarStat")
+        )
+        
+        viewControllers = [trackersNavigationController, statisticsNavigationController]
+        
+        tabBar.backgroundColor = UIColor.white
+        tabBar.tintColor = UIColor(named: "Blue")
+        tabBar.unselectedItemTintColor = UIColor(named: "Gray")
     }
     
     private func setupTopBorder() {
@@ -32,34 +53,6 @@ class TabBarController: UITabBarController {
             topBorderView.heightAnchor.constraint(equalToConstant: 1)
         ])
     }
-    
-    private func setupTabBar() {
-        // Создаем экран трекеров (главный экран)
-        let trackersViewController = TrackersViewController()
-        trackersViewController.tabBarItem = UITabBarItem(
-            title: "Трекеры",
-            image: UIImage(systemName: "record.circle"),
-            selectedImage: UIImage(systemName: "record.circle.fill")
-        )
-        
-        // Создаем экран статистики (пока пустой)
-        let statisticsViewController = StatisticsViewController()
-        statisticsViewController.tabBarItem = UITabBarItem(
-            title: "Статистика",
-            image: UIImage(named: "TabBarStat"),
-            selectedImage: UIImage(named: "TabBarStat")
-        )
-        
-        // Настраиваем TabBar
-        viewControllers = [
-            trackersViewController,
-            statisticsViewController
-        ]
-        
-        // Настраиваем внешний вид TabBar
-        tabBar.tintColor = UIColor(named: "Blue")
-        tabBar.unselectedItemTintColor = UIColor(named: "Gray")
-    }
 }
 
 // MARK: - Placeholder View Controllers
@@ -67,7 +60,17 @@ class TabBarController: UITabBarController {
 class StatisticsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.systemBackground
-        title = "Статистика"
+        view.backgroundColor = UIColor.white
+        
+        let label = UILabel()
+        label.text = "Статистика"
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+        
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
     }
 }

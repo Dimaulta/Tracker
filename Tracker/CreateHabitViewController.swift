@@ -55,19 +55,10 @@ class CreateHabitViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = UIColor(named: "WhiteDay")
         
-        // Настройка заголовка
         setupTitle()
-        
-        // Настройка поля ввода названия
         setupNameTextField()
-        
-        // Настройка контейнера категории и расписания
         setupCategoryContainer()
-        
-        // Настройка кнопок
         setupButtons()
-        
-        // Настройка лейбла ограничения символов
         setupCharacterLimitLabel()
     }
     
@@ -90,7 +81,6 @@ class CreateHabitViewController: UIViewController {
         nameTextField.borderStyle = .none
         nameTextField.delegate = self
         
-        // Добавляем отступы для текста
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
         nameTextField.leftView = paddingView
         nameTextField.leftViewMode = .always
@@ -109,7 +99,6 @@ class CreateHabitViewController: UIViewController {
         categoryContainerView.alpha = 1.0
         view.addSubview(categoryContainerView)
         
-        // Настройка категории
         categoryLabel.translatesAutoresizingMaskIntoConstraints = false
         categoryLabel.text = "Категория"
         categoryLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
@@ -121,7 +110,6 @@ class CreateHabitViewController: UIViewController {
         categoryArrowImageView.tintColor = UIColor(named: "Gray")
         categoryContainerView.addSubview(categoryArrowImageView)
         
-        // Настройка значения категории
         categoryValueLabel.translatesAutoresizingMaskIntoConstraints = false
         categoryValueLabel.text = "Важное"
         categoryValueLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
@@ -129,12 +117,10 @@ class CreateHabitViewController: UIViewController {
         categoryValueLabel.isHidden = true
         categoryContainerView.addSubview(categoryValueLabel)
         
-        // Настройка разделителя
         dividerView.translatesAutoresizingMaskIntoConstraints = false
         dividerView.backgroundColor = UIColor(named: "Gray")
         categoryContainerView.addSubview(dividerView)
         
-        // Настройка расписания
         scheduleLabel.translatesAutoresizingMaskIntoConstraints = false
         scheduleLabel.text = "Расписание"
         scheduleLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
@@ -146,7 +132,6 @@ class CreateHabitViewController: UIViewController {
         scheduleArrowImageView.tintColor = UIColor(named: "Gray")
         categoryContainerView.addSubview(scheduleArrowImageView)
         
-        // Настройка значения расписания
         scheduleValueLabel.translatesAutoresizingMaskIntoConstraints = false
         scheduleValueLabel.text = "Каждый день"
         scheduleValueLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
@@ -154,19 +139,16 @@ class CreateHabitViewController: UIViewController {
         scheduleValueLabel.isHidden = true
         categoryContainerView.addSubview(scheduleValueLabel)
         
-        // Добавляем обработчики нажатий
         let categoryTap = UITapGestureRecognizer(target: self, action: #selector(categoryTapped))
         categoryLabel.addGestureRecognizer(categoryTap)
         categoryLabel.isUserInteractionEnabled = true
         
-        // Добавляем интерактивность для расписания
         let scheduleTap = UITapGestureRecognizer(target: self, action: #selector(scheduleTapped))
         scheduleLabel.addGestureRecognizer(scheduleTap)
         scheduleLabel.isUserInteractionEnabled = true
     }
     
     private func setupButtons() {
-        // Кнопка "Отменить"
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.setTitle("Отменить", for: .normal)
         cancelButton.setTitleColor(UIColor(named: "Red"), for: .normal)
@@ -178,7 +160,6 @@ class CreateHabitViewController: UIViewController {
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         view.addSubview(cancelButton)
         
-        // Кнопка "Создать"
         createButton.translatesAutoresizingMaskIntoConstraints = false
         createButton.setTitle("Создать", for: .normal)
         createButton.setTitleColor(UIColor(named: "WhiteDay"), for: .normal)
@@ -201,39 +182,32 @@ class CreateHabitViewController: UIViewController {
     }
     
     private func setupConstraints() {
-        // Создаем констрейнты для анимации
         categoryLabelTopConstraint = categoryLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 30)
-        categoryValueLabelTopConstraint = categoryValueLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 45) // Чуть ниже "Категории"
+        categoryValueLabelTopConstraint = categoryValueLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 45)
         
         scheduleLabelTopConstraint = scheduleLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 91)
-        scheduleValueLabelTopConstraint = scheduleValueLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 106) // Чуть ниже "Расписания"
+        scheduleValueLabelTopConstraint = scheduleValueLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 106)
         
-        // Изначально "Важное" и "Каждый день" скрыты
         categoryValueLabel.isHidden = true
         scheduleValueLabel.isHidden = true
         
         NSLayoutConstraint.activate([
-            // Заголовок
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 60),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            // Поле ввода названия
             nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             nameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             nameTextField.widthAnchor.constraint(equalToConstant: 343),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
-            // Лейбл ограничения символов
             characterLimitLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
             characterLimitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            // Контейнер категории и расписания
             categoryContainerView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 20),
             categoryContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             categoryContainerView.widthAnchor.constraint(equalToConstant: 343),
             categoryContainerView.heightAnchor.constraint(equalToConstant: 150),
             
-            // Категория
             categoryLabelTopConstraint!,
             categoryLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
             
@@ -242,18 +216,15 @@ class CreateHabitViewController: UIViewController {
             categoryArrowImageView.widthAnchor.constraint(equalToConstant: 24),
             categoryArrowImageView.heightAnchor.constraint(equalToConstant: 24),
             
-            // Значение категории - центрируем по вертикали в верхней половине
             categoryValueLabelTopConstraint!,
             categoryValueLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
-            categoryValueLabel.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor, constant: -40), // Оставляем место для стрелки
+            categoryValueLabel.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor, constant: -40),
             
-            // Разделитель
             dividerView.centerYAnchor.constraint(equalTo: categoryContainerView.centerYAnchor),
             dividerView.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
             dividerView.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor, constant: -16),
             dividerView.heightAnchor.constraint(equalToConstant: 0.5),
             
-            // Расписание
             scheduleLabelTopConstraint!,
             scheduleLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
             
@@ -262,12 +233,10 @@ class CreateHabitViewController: UIViewController {
             scheduleArrowImageView.widthAnchor.constraint(equalToConstant: 24),
             scheduleArrowImageView.heightAnchor.constraint(equalToConstant: 24),
             
-            // Значение расписания
             scheduleValueLabelTopConstraint!,
             scheduleValueLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
-            scheduleValueLabel.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor, constant: -40), // Оставляем место для стрелки
+            scheduleValueLabel.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor, constant: -40),
             
-            // Кнопки
             cancelButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             cancelButton.widthAnchor.constraint(equalToConstant: 166),
@@ -314,22 +283,16 @@ class CreateHabitViewController: UIViewController {
 
     
     @objc private func keyboardWillShow(notification: NSNotification) {
-        // Логика для скролла при появлении клавиатуры
     }
     
     @objc private func keyboardWillHide(notification: NSNotification) {
-        // Логика для возврата к исходному состоянию
     }
     
     @objc private func categoryTapped() {
-        // Показываем категорию только если введено название привычки
         if !(nameTextField.text?.isEmpty ?? true) {
-            // Показываем "Важное" на той же позиции что и "Категория"
             categoryValueLabel.isHidden = false
             
-            // Небольшая задержка для корректного отображения
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                // Анимация смещения слов
                 UIView.animate(withDuration: 0.5, animations: {
                     self.categoryLabelTopConstraint?.constant = 20
                     self.categoryValueLabelTopConstraint?.constant = 45
@@ -340,17 +303,13 @@ class CreateHabitViewController: UIViewController {
     }
     
     @objc private func scheduleTapped() {
-        // Показываем категорию только если введено название привычки
         if !(nameTextField.text?.isEmpty ?? true) {
             categoryValueLabel.isHidden = false
-            // categoryLabel.isHidden = true // Убираем скрытие "Категория"
         }
         
-        // Открываем модальное окно с расписанием
         let scheduleViewController = ScheduleViewController()
         scheduleViewController.modalPresentationStyle = .pageSheet
         
-        // Передаем замыкание для получения выбранных дней
         scheduleViewController.onScheduleSelected = { [weak self] selectedDays in
             self?.updateScheduleValue(with: selectedDays)
         }
@@ -365,17 +324,14 @@ class CreateHabitViewController: UIViewController {
     }
     
         @objc private func createButtonTapped() {
-        // Создаем привычку
-        let habit = Habit(
+        let tracker = Tracker(
             name: nameTextField.text ?? "",
-            category: "Важное", // Устанавливаем категорию
-            schedule: Array(selectedDays),
-            emoji: "😪", // Пока фиксированный эмодзи
-            color: "Green" // Используем Green цвет
+            color: "Green",
+            emoji: "😪",
+            schedule: Array(selectedDays)
         )
         
-        // Передаем привычку обратно через делегат
-        delegate?.didCreateHabit(habit)
+        delegate?.didCreateTracker(tracker)
         
         dismiss(animated: true)
     }
@@ -383,21 +339,17 @@ class CreateHabitViewController: UIViewController {
         private func updateScheduleValue(with days: Set<Int>) {
         selectedDays = days
         
-        // Если не выбран ни один день, ничего не показываем
         if selectedDays.isEmpty {
             scheduleValueLabel.isHidden = true
             return
         }
-        // Если не выбран ни один день, ничего не показываем
         if selectedDays.isEmpty {
             scheduleValueLabel.isHidden = true
             return
         }
         
-        // Показываем значение расписания
         scheduleValueLabel.isHidden = false
         
-        // Формируем текст в зависимости от выбранных дней
         let daysOfWeek = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
         let selectedDayNames = selectedDays.sorted().map { daysOfWeek[$0] }
         
@@ -407,13 +359,9 @@ class CreateHabitViewController: UIViewController {
             scheduleValueLabel.text = selectedDayNames.joined(separator: ", ")
         }
         
-        // Небольшая задержка для корректного отображения
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            // Анимация смещения слов - центрируем в нижней половине
             UIView.animate(withDuration: 0.5, animations: {
-                // "Расписание" смещается в центр нижней половины
                 self.scheduleLabelTopConstraint?.constant = 95
-                // Значение появляется под ним
                 self.scheduleValueLabelTopConstraint?.constant = 120
                 self.view.layoutIfNeeded()
             })
@@ -442,7 +390,6 @@ extension CreateHabitViewController: UITextFieldDelegate {
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        // Дополнительная логика при начале редактирования
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
