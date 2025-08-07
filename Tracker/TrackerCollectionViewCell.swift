@@ -35,7 +35,7 @@ class TrackerCollectionViewCell: UICollectionViewCell {
     private func setupUI() {
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.layer.cornerRadius = 16
-        containerView.layer.borderWidth = 0.5
+        containerView.layer.borderWidth = 1
         containerView.layer.borderColor = UIColor(named: "Gray")?.withAlphaComponent(0.3).cgColor
         contentView.addSubview(containerView)
         
@@ -85,6 +85,9 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         completionButton.layer.borderWidth = 2
         completionButton.layer.borderColor = UIColor.white.cgColor
         completionButton.addTarget(self, action: #selector(completionButtonTapped), for: .touchUpInside)
+        completionButton.isUserInteractionEnabled = true
+        completionButton.layer.zPosition = 1 // Кнопка поверх других элементов
+        print("🔍 Debug: Кнопка настроена, target добавлен")
         contentView.addSubview(completionButton)
         
         NSLayoutConstraint.activate([
@@ -93,10 +96,10 @@ class TrackerCollectionViewCell: UICollectionViewCell {
             headerLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
             headerLabel.heightAnchor.constraint(equalToConstant: 18),
             
-            containerView.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 8),
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            containerView.heightAnchor.constraint(equalToConstant: 90),
+            containerView.heightAnchor.constraint(equalToConstant: 70),
             
             emojiLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             emojiLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
@@ -118,7 +121,15 @@ class TrackerCollectionViewCell: UICollectionViewCell {
     }
     
     @objc private func completionButtonTapped() {
-        guard let tracker = tracker else { return }
+        print("🔍 Debug: Кнопка нажата!")
+        print("🔍 Debug: completionButton.frame = \(completionButton.frame)")
+        print("🔍 Debug: completionButton.isUserInteractionEnabled = \(completionButton.isUserInteractionEnabled)")
+        
+        guard let tracker = tracker else { 
+            print("🔍 Debug: tracker is nil")
+            return 
+        }
+        print("🔍 Debug: Вызываю onCompletionToggled для трекера '\(tracker.name)'")
         onCompletionToggled?(tracker)
     }
     
@@ -126,20 +137,8 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         self.tracker = tracker
         self.selectedDate = selectedDate
         
-        headerLabel.text = "Важное"
-        
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 18.0 / 19.0
-        paragraphStyle.alignment = .left
-        let attributedString = NSAttributedString(
-            string: "Важное",
-            attributes: [
-                .paragraphStyle: paragraphStyle,
-                .font: headerLabel.font ?? UIFont.boldSystemFont(ofSize: 19),
-                .foregroundColor: UIColor(named: "BlackDay") ?? UIColor.black
-            ]
-        )
-        headerLabel.attributedText = attributedString
+        // Убираем заголовок категории из ячейки
+        headerLabel.isHidden = true
         
         emojiLabel.text = tracker.emoji
         
@@ -151,28 +150,69 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         containerView.backgroundColor = UIColor(named: tracker.color) ?? UIColor(named: "Green")
         
         updateCompletionButton(isCompleted: isCompleted)
+        
+        print("🔍 Debug: Ячейка настроена для трекера '\(tracker.name)', onCompletionToggled = \(onCompletionToggled != nil)")
+        print("🔍 Debug: completionButton.frame после configure = \(completionButton.frame)")
+    }
+    
+    func configure(with category: TrackerCategory, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
+        self.selectedDate = selectedDate
+        
+        // Показываем заголовок категории
+        headerLabel.isHidden = false
+        headerLabel.text = category.title
+        
+        // Показываем первый трекер из категории (временно)
+        if let firstTracker = category.trackers.first {
+            self.tracker = firstTracker
+            emojiLabel.text = firstTracker.emoji
+            nameLabel.text = firstTracker.name
+            containerView.backgroundColor = UIColor(named: firstTracker.color) ?? UIColor(named: "Green")
+        }
+        
+        let dayText = getDayText(for: completedCount)
+        daysLabel.text = "\(completedCount) \(dayText)"
+        
+        updateCompletionButton(isCompleted: isCompleted)
     }
     
     private func updateCompletionButton(isCompleted: Bool) {
+        // TODO: Реализовать кнопку плюса и счётчика согласно функционалу и дизайну
+        print("🔍 Debug: updateCompletionButton вызван, isCompleted = \(isCompleted)")
+        print("🔍 Debug: tracker?.color = \(tracker?.color ?? "nil")")
+        
         completionButton.layer.cornerRadius = 17
         completionButton.layer.borderWidth = 2
         completionButton.layer.borderColor = UIColor.white.cgColor
         
         let cellColor = UIColor(named: tracker?.color ?? "Green") ?? UIColor.systemGreen
+        print("🔍 Debug: cellColor = \(cellColor)")
         
         if isCompleted {
-            completionButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
-            completionButton.tintColor = UIColor.white
-            completionButton.backgroundColor = cellColor
-            completionButton.alpha = 0.3
-        } else {
-            completionButton.setImage(UIImage(systemName: "plus"), for: .normal)
-            completionButton.tintColor = UIColor.white
-            completionButton.backgroundColor = cellColor
+            let habitPropertyImage = UIImage(named: "habitproperty")
+            print("🔍 Debug: habitproperty image = \(habitPropertyImage != nil)")
+            completionButton.setImage(habitPropertyImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+            completionButton.tintColor = UIColor.white // Галочка белая
+            completionButton.backgroundColor = cellColor.withAlphaComponent(0.5) // Светло-зелёная как на макете
             completionButton.alpha = 1.0
+            print("🔍 Debug: Установлена галочка, backgroundColor = \(completionButton.backgroundColor?.description ?? "nil")")
+        } else {
+            let habitPlusImage = UIImage(named: "habitplus")
+            print("🔍 Debug: habitplus image = \(habitPlusImage != nil)")
+            completionButton.setImage(habitPlusImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+            completionButton.tintColor = UIColor.white // Плюсик белый
+            completionButton.backgroundColor = cellColor // Кружок в цвет привычки
+            completionButton.alpha = 1.0
+            print("🔍 Debug: Установлен плюсик, backgroundColor = \(completionButton.backgroundColor?.description ?? "nil")")
         }
         
         completionButton.isHidden = false
+        
+        // Принудительно обновляем layout
+        completionButton.layoutIfNeeded()
+        contentView.layoutIfNeeded()
+        
+        print("🔍 Debug: Кнопка настроена, frame = \(completionButton.frame)")
     }
     
     private func getDayText(for count: Int) -> String {

@@ -118,9 +118,9 @@ class ScheduleViewController: UIViewController {
         view.addSubview(doneButton)
         
         NSLayoutConstraint.activate([
-            doneButton.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 20),
-            doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            doneButton.widthAnchor.constraint(equalToConstant: 335),
+            doneButton.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 50),
+            doneButton.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            doneButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             doneButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }

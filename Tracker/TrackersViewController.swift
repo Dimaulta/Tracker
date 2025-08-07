@@ -19,6 +19,7 @@ class TrackersViewController: UIViewController {
     private let emptyStateImageView = UIImageView()
     private let emptyStateLabel = UILabel()
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    private let categoryHeaderLabel = UILabel()
     
     // MARK: - Data
     private var categories: [TrackerCategory] = []
@@ -27,6 +28,25 @@ class TrackersViewController: UIViewController {
     var currentDate: Date = Date()
     
     // MARK: - Computed Properties
+    private var visibleCategories: [TrackerCategory] {
+        print("🔍 Debug: currentDate = \(currentDate)")
+        print("🔍 Debug: Всего категорий = \(categories.count)")
+        
+        let result = categories.map { category in
+            print("🔍 Debug: Категория '\(category.title)' с \(category.trackers.count) трекерами")
+            let filteredTrackers = category.trackers.filter { tracker in
+                let isScheduled = tracker.isScheduled(for: currentDate)
+                print("  Трекер '\(tracker.name)' запланирован на сегодня: \(isScheduled)")
+                return isScheduled
+            }
+            print("  После фильтрации осталось \(filteredTrackers.count) трекеров")
+            return TrackerCategory(title: category.title, trackers: filteredTrackers)
+        }.filter { !$0.trackers.isEmpty }
+        
+        print("🔍 Debug: Итого видимых категорий = \(result.count)")
+        return result
+    }
+    
     private var visibleTrackers: [Tracker] {
         var allTrackers: [Tracker] = []
         for category in categories {
@@ -57,6 +77,7 @@ class TrackersViewController: UIViewController {
         setupTitle()
         setupSearchBar()
         setupDatePicker()
+        setupCategoryHeader()
         setupCollectionView()
         setupEmptyState()
     }
@@ -109,6 +130,23 @@ class TrackersViewController: UIViewController {
             datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             datePicker.widthAnchor.constraint(equalToConstant: 120),
             datePicker.heightAnchor.constraint(equalToConstant: 34)
+        ])
+    }
+    
+    private func setupCategoryHeader() {
+        categoryHeaderLabel.translatesAutoresizingMaskIntoConstraints = false
+        categoryHeaderLabel.text = "Важное"
+        categoryHeaderLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
+        categoryHeaderLabel.textColor = UIColor(named: "BlackDay")
+        categoryHeaderLabel.isHidden = true
+        view.addSubview(categoryHeaderLabel)
+        
+        print("🔍 Debug: Настроен заголовок категории '\(categoryHeaderLabel.text ?? "")'")
+        
+        NSLayoutConstraint.activate([
+            categoryHeaderLabel.topAnchor.constraint(equalTo: searchContainerView.bottomAnchor, constant: 34),
+            categoryHeaderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
+            categoryHeaderLabel.heightAnchor.constraint(equalToConstant: 22)
         ])
     }
     
@@ -195,17 +233,19 @@ class TrackersViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.register(TrackerCollectionViewCell.self, forCellWithReuseIdentifier: TrackerCollectionViewCell.identifier)
         
-        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
-            layout.scrollDirection = .vertical
-            layout.minimumInteritemSpacing = 8
-            layout.minimumLineSpacing = 8
-            layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        }
+        // Создаём новый layout с правильными параметрами
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 8
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        
+        collectionView.setCollectionViewLayout(layout, animated: false)
         
         view.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: searchContainerView.bottomAnchor, constant: 20),
+            collectionView.topAnchor.constraint(equalTo: categoryHeaderLabel.bottomAnchor, constant: 6),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
@@ -217,6 +257,10 @@ class TrackersViewController: UIViewController {
         if let data = UserDefaults.standard.data(forKey: "categories"),
            let savedCategories = try? JSONDecoder().decode([TrackerCategory].self, from: data) {
             categories = savedCategories
+            print("🔍 Debug: Загружено \(categories.count) категорий:")
+            for (index, category) in categories.enumerated() {
+                print("  Категория \(index): '\(category.title)' с \(category.trackers.count) трекерами")
+            }
         }
         if let data = UserDefaults.standard.data(forKey: "completedTrackers"),
            let savedCompletedTrackers = try? JSONDecoder().decode([TrackerRecord].self, from: data) {
@@ -236,37 +280,59 @@ class TrackersViewController: UIViewController {
     }
     
     private func addTracker(_ tracker: Tracker) {
-        let category = TrackerCategory(title: "Важное", trackers: [tracker])
-        categories.append(category)
+        // Ищем существующую категорию "Важное"
+        if let existingCategoryIndex = categories.firstIndex(where: { $0.title == "Важное" }) {
+            // Создаём новую категорию с обновлённым списком трекеров
+            let existingCategory = categories[existingCategoryIndex]
+            let updatedCategory = TrackerCategory(title: existingCategory.title, trackers: existingCategory.trackers + [tracker])
+            categories[existingCategoryIndex] = updatedCategory
+        } else {
+            // Создаём новую категорию только если её нет
+            let category = TrackerCategory(title: "Важное", trackers: [tracker])
+            categories.append(category)
+        }
         saveData()
         updateUI()
     }
     
     func updateUI() {
         collectionView.reloadData()
+        collectionView.collectionViewLayout.invalidateLayout()
         
         let isEmpty = visibleTrackers.isEmpty
+        print("🔍 Debug: isEmpty = \(isEmpty), visibleTrackers.count = \(visibleTrackers.count)")
+        
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
         collectionView.isHidden = isEmpty
+        categoryHeaderLabel.isHidden = isEmpty
+        
+        print("🔍 Debug: categoryHeaderLabel.isHidden = \(categoryHeaderLabel.isHidden)")
     }
     
     // MARK: - Tracker Management
     private func toggleTrackerCompletion(for tracker: Tracker) {
+        print("🔍 Debug: toggleTrackerCompletion вызван для трекера '\(tracker.name)'")
+        
         let calendar = Calendar.current
         let today = Date()
         let canBeCompleted = calendar.compare(currentDate, to: today, toGranularity: .day) != .orderedDescending
         
+        print("🔍 Debug: canBeCompleted = \(canBeCompleted)")
+        
         if !canBeCompleted {
+            print("🔍 Debug: Трекер не может быть завершён")
             return
         }
         
         let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
         
         if completedTrackerIds.contains(tracker.id) {
+            print("🔍 Debug: Удаляю завершение трекера")
             completedTrackers.removeAll { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
             completedTrackerIds.remove(tracker.id)
         } else {
+            print("🔍 Debug: Добавляю завершение трекера")
             completedTrackers.append(record)
             completedTrackerIds.insert(tracker.id)
         }
@@ -288,10 +354,14 @@ extension TrackersViewController: UICollectionViewDataSource {
         let completedCount = getCompletedCount(for: tracker)
         let isCompleted = isTrackerCompleted(for: tracker)
         
-        cell.configure(with: tracker, selectedDate: currentDate, isCompleted: isCompleted, completedCount: completedCount)
+        // Сначала устанавливаем callback
         cell.onCompletionToggled = { [weak self] tracker in
             self?.toggleTrackerCompletion(for: tracker)
         }
+        
+        // Потом настраиваем ячейку
+        cell.configure(with: tracker, selectedDate: currentDate, isCompleted: isCompleted, completedCount: completedCount)
+        
         return cell
     }
 }
@@ -299,10 +369,7 @@ extension TrackersViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let availableWidth = collectionView.bounds.width - 32
-        let spacing: CGFloat = 8
-        let cellWidth = (availableWidth - spacing) / 2
-        return CGSize(width: cellWidth, height: 160)
+        return CGSize(width: 167, height: 90)
     }
 }
 

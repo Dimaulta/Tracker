@@ -23,6 +23,8 @@ class CreateHabitViewController: UIViewController {
     private let cancelButton = UIButton(type: .system)
     private let createButton = UIButton(type: .system)
     private let characterLimitLabel = UILabel()
+    private let categoryAreaView = UIView()
+    private let scheduleAreaView = UIView()
     
     // MARK: - Constraints for animation
     private var categoryLabelTopConstraint: NSLayoutConstraint?
@@ -139,9 +141,28 @@ class CreateHabitViewController: UIViewController {
         scheduleValueLabel.isHidden = true
         categoryContainerView.addSubview(scheduleValueLabel)
         
-        let categoryTap = UITapGestureRecognizer(target: self, action: #selector(categoryTapped))
-        categoryLabel.addGestureRecognizer(categoryTap)
-        categoryLabel.isUserInteractionEnabled = true
+        // Убираем gesture recognizer с categoryLabel, оставляем только с categoryAreaView
+        // let categoryTap = UITapGestureRecognizer(target: self, action: #selector(categoryTapped))
+        // categoryLabel.addGestureRecognizer(categoryTap)
+        // categoryLabel.isUserInteractionEnabled = true
+        
+        // Создаём отдельную область для всей верхней части категории
+        categoryAreaView.translatesAutoresizingMaskIntoConstraints = false
+        categoryAreaView.backgroundColor = UIColor.clear
+        categoryAreaView.isUserInteractionEnabled = true
+        categoryContainerView.addSubview(categoryAreaView)
+        
+        let categoryAreaTap = UITapGestureRecognizer(target: self, action: #selector(categoryTapped))
+        categoryAreaView.addGestureRecognizer(categoryAreaTap)
+        
+        // Создаём отдельную область для всей нижней части расписания
+        scheduleAreaView.translatesAutoresizingMaskIntoConstraints = false
+        scheduleAreaView.backgroundColor = UIColor.clear
+        scheduleAreaView.isUserInteractionEnabled = true
+        categoryContainerView.addSubview(scheduleAreaView)
+        
+        let scheduleAreaTap = UITapGestureRecognizer(target: self, action: #selector(scheduleTapped))
+        scheduleAreaView.addGestureRecognizer(scheduleAreaTap)
         
         let scheduleTap = UITapGestureRecognizer(target: self, action: #selector(scheduleTapped))
         scheduleLabel.addGestureRecognizer(scheduleTap)
@@ -211,6 +232,18 @@ class CreateHabitViewController: UIViewController {
             categoryLabelTopConstraint!,
             categoryLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
             
+            // Констрейнты для интерактивной области категории
+            categoryAreaView.topAnchor.constraint(equalTo: categoryContainerView.topAnchor),
+            categoryAreaView.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor),
+            categoryAreaView.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor),
+            categoryAreaView.bottomAnchor.constraint(equalTo: dividerView.topAnchor),
+            
+            // Констрейнты для интерактивной области расписания
+            scheduleAreaView.topAnchor.constraint(equalTo: dividerView.bottomAnchor),
+            scheduleAreaView.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor),
+            scheduleAreaView.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor),
+            scheduleAreaView.bottomAnchor.constraint(equalTo: categoryContainerView.bottomAnchor),
+            
             categoryArrowImageView.centerYAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 37.5),
             categoryArrowImageView.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor, constant: -16),
             categoryArrowImageView.widthAnchor.constraint(equalToConstant: 24),
@@ -271,7 +304,8 @@ class CreateHabitViewController: UIViewController {
     
     private func validateForm() {
         let hasName = !(nameTextField.text?.isEmpty ?? true)
-        isFormValid = hasName
+        let hasSchedule = !selectedDays.isEmpty
+        isFormValid = hasName && hasSchedule
     }
     
     // MARK: - Actions
@@ -366,6 +400,8 @@ class CreateHabitViewController: UIViewController {
                 self.view.layoutIfNeeded()
             })
         }
+        
+        validateForm()
     }
 }
 
