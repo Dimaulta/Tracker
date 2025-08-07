@@ -29,21 +29,14 @@ class TrackersViewController: UIViewController {
     
     // MARK: - Computed Properties
     private var visibleCategories: [TrackerCategory] {
-        print("🔍 Debug: currentDate = \(currentDate)")
-        print("🔍 Debug: Всего категорий = \(categories.count)")
-        
         let result = categories.map { category in
-            print("🔍 Debug: Категория '\(category.title)' с \(category.trackers.count) трекерами")
             let filteredTrackers = category.trackers.filter { tracker in
                 let isScheduled = tracker.isScheduled(for: currentDate)
-                print("  Трекер '\(tracker.name)' запланирован на сегодня: \(isScheduled)")
                 return isScheduled
             }
-            print("  После фильтрации осталось \(filteredTrackers.count) трекеров")
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
         
-        print("🔍 Debug: Итого видимых категорий = \(result.count)")
         return result
     }
     
@@ -142,8 +135,6 @@ class TrackersViewController: UIViewController {
         categoryHeaderLabel.textColor = UIColor(named: "BlackDay")
         categoryHeaderLabel.isHidden = true
         view.addSubview(categoryHeaderLabel)
-        
-        print("🔍 Debug: Настроен заголовок категории '\(categoryHeaderLabel.text ?? "")'")
         
         NSLayoutConstraint.activate([
             categoryHeaderLabel.topAnchor.constraint(equalTo: searchContainerView.bottomAnchor, constant: 34),
@@ -259,10 +250,6 @@ class TrackersViewController: UIViewController {
         if let data = UserDefaults.standard.data(forKey: "categories"),
            let savedCategories = try? JSONDecoder().decode([TrackerCategory].self, from: data) {
             categories = savedCategories
-            print("🔍 Debug: Загружено \(categories.count) категорий:")
-            for (index, category) in categories.enumerated() {
-                print("  Категория \(index): '\(category.title)' с \(category.trackers.count) трекерами")
-            }
         }
         if let data = UserDefaults.standard.data(forKey: "completedTrackers"),
            let savedCompletedTrackers = try? JSONDecoder().decode([TrackerRecord].self, from: data) {
@@ -302,31 +289,22 @@ class TrackersViewController: UIViewController {
         collectionView.collectionViewLayout.invalidateLayout()
         
         let isEmpty = visibleTrackers.isEmpty
-        print("🔍 Debug: isEmpty = \(isEmpty), visibleTrackers.count = \(visibleTrackers.count)")
         
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
         collectionView.isHidden = isEmpty
         categoryHeaderLabel.isHidden = isEmpty
-        
-        print("🔍 Debug: categoryHeaderLabel.isHidden = \(categoryHeaderLabel.isHidden)")
     }
     
     // MARK: - Tracker Management
     private func toggleTrackerCompletion(for tracker: Tracker) {
-        print("🔍 Debug: toggleTrackerCompletion вызван для трекера '\(tracker.name)'")
-        
         let calendar = Calendar.current
         let today = Date()
         
         // Проверяем что нельзя отметить для будущей даты
         let canBeCompleted = calendar.compare(currentDate, to: today, toGranularity: .day) != .orderedDescending
         
-        print("🔍 Debug: currentDate = \(currentDate), today = \(today)")
-        print("🔍 Debug: canBeCompleted = \(canBeCompleted)")
-        
         if !canBeCompleted {
-            print("🔍 Debug: Трекер не может быть завершён для будущей даты")
             return
         }
         
@@ -335,16 +313,12 @@ class TrackersViewController: UIViewController {
             record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
         }
         
-        print("🔍 Debug: isAlreadyCompleted = \(isAlreadyCompleted)")
-        
         if isAlreadyCompleted {
-            print("🔍 Debug: Удаляю завершение трекера для даты \(currentDate)")
             // Удаляем запись для конкретной даты
             completedTrackers.removeAll { record in
                 record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
             }
         } else {
-            print("🔍 Debug: Добавляю завершение трекера для даты \(currentDate)")
             let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
             completedTrackers.append(record)
         }
@@ -354,9 +328,6 @@ class TrackersViewController: UIViewController {
         
         saveData()
         updateUI()
-        
-        print("🔍 Debug: Общее количество завершений для трекера '\(tracker.name)': \(getCompletedCount(for: tracker))")
-        print("🔍 Debug: Всего записей в completedTrackers: \(completedTrackers.count)")
     }
 }
 
@@ -389,7 +360,6 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         // Рассчитываем динамическую ширину ячеек
         let collectionViewWidth = collectionView.bounds.width
-        print("🔍 Debug: collectionView.bounds.width = \(collectionViewWidth)")
         
         if collectionViewWidth == 0 {
             // Если ширина ещё не рассчитана, используем ширину экрана
@@ -398,15 +368,13 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
             let spacing: CGFloat = 9 // Расстояние между ячейками
             let cellWidth = (availableWidth - spacing) / 2 // Две ячейки в ряду
             
-            print("🔍 Debug: screenWidth = \(screenWidth), availableWidth = \(availableWidth), cellWidth = \(cellWidth)")
-            return CGSize(width: cellWidth, height: 112) // Увеличил высоту с 90 до 112
+            return CGSize(width: cellWidth, height: 132) // Увеличил высоту для 90px цветной области
         } else {
             let availableWidth = collectionViewWidth - 32 // 16px слева + 16px справа
             let spacing: CGFloat = 9 // Расстояние между ячейками
             let cellWidth = (availableWidth - spacing) / 2 // Две ячейки в ряду
             
-            print("🔍 Debug: availableWidth = \(availableWidth), cellWidth = \(cellWidth)")
-            return CGSize(width: cellWidth, height: 112) // Увеличил высоту с 90 до 112
+            return CGSize(width: cellWidth, height: 132) // Увеличил высоту для 90px цветной области
         }
     }
 }

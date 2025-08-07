@@ -90,7 +90,6 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(completionButtonTapped))
         completionButton.addGestureRecognizer(tapGesture)
         
-        print("🔍 Debug: Кнопка настроена, gesture добавлен")
         contentView.addSubview(completionButton)
         
         NSLayoutConstraint.activate([
@@ -102,7 +101,7 @@ class TrackerCollectionViewCell: UICollectionViewCell {
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor), // Убрал отступ
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor), // Убрал отступ
-            containerView.heightAnchor.constraint(equalToConstant: 70),
+            containerView.heightAnchor.constraint(equalToConstant: 90),
             
             emojiLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             emojiLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
@@ -126,22 +125,10 @@ class TrackerCollectionViewCell: UICollectionViewCell {
     }
     
     @objc private func completionButtonTapped() {
-        print("🔍 Debug: Кнопка нажата!")
-        print("🔍 Debug: completionButton.frame = \(completionButton.frame)")
-        print("🔍 Debug: completionButton.isUserInteractionEnabled = \(completionButton.isUserInteractionEnabled)")
-        print("🔍 Debug: completionButton.alpha = \(completionButton.alpha)")
-        print("🔍 Debug: completionButton.isHidden = \(completionButton.isHidden)")
-        print("🔍 Debug: contentView.isUserInteractionEnabled = \(contentView.isUserInteractionEnabled)")
-        print("🔍 Debug: gesture recognizer работает!")
-        
         guard let tracker = tracker else { 
-            print("🔍 Debug: tracker is nil")
             return 
         }
-        print("🔍 Debug: Вызываю onCompletionToggled для трекера '\(tracker.name)'")
-        print("🔍 Debug: onCompletionToggled = \(onCompletionToggled != nil)")
         onCompletionToggled?(tracker)
-        print("🔍 Debug: onCompletionToggled выполнен")
     }
     
     func configure(with tracker: Tracker, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
@@ -173,14 +160,6 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         containerView.backgroundColor = UIColor(named: tracker.color) ?? UIColor(named: "Green")
         
         updateCompletionButton(isCompleted: isCompleted)
-        
-        print("🔍 Debug: Ячейка настроена для трекера '\(tracker.name)', onCompletionToggled = \(onCompletionToggled != nil)")
-        print("🔍 Debug: completionButton.frame после configure = \(completionButton.frame)")
-        print("🔍 Debug: contentView.frame = \(contentView.frame)")
-        print("🔍 Debug: containerView.frame = \(containerView.frame)")
-        print("🔍 Debug: daysLabel.frame = \(daysLabel.frame)")
-        print("🔍 Debug: Высота ячейки = 90, containerView = 70, отступ = 8, кнопка = 34")
-        print("🔍 Debug: Общая высота = 70 + 8 + 34 = 112 > 90!")
     }
     
     func configure(with category: TrackerCategory, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
@@ -205,25 +184,17 @@ class TrackerCollectionViewCell: UICollectionViewCell {
     }
     
     private func updateCompletionButton(isCompleted: Bool) {
-        print("🔍 Debug: updateCompletionButton вызван, isCompleted = \(isCompleted)")
-        print("🔍 Debug: tracker?.color = \(tracker?.color ?? "nil")")
-        
-        // completionButton.layer.cornerRadius = 17
-        // completionButton.layer.borderWidth = 2
-        // completionButton.layer.borderColor = UIColor.red.cgColor
         
         let cellColor = UIColor(named: tracker?.color ?? "Green") ?? UIColor.systemGreen
-        print("🔍 Debug: cellColor = \(cellColor)")
         
         if isCompleted {
             // Используем текст "✓" вместо изображения для гарантированно белого цвета
             completionButton.setImage(nil, for: .normal)
             completionButton.setTitle("✓", for: .normal)
             completionButton.setTitleColor(UIColor.white, for: .normal)
-            completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .bold) // Галочка 12x12px
+            completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold) // Галочка 12x12px
             completionButton.backgroundColor = cellColor.withAlphaComponent(0.3) // Прозрачность 30%
             completionButton.alpha = 1.0
-            print("🔍 Debug: Установлена галочка текстом, backgroundColor = \(completionButton.backgroundColor?.description ?? "nil")")
         } else {
             // Используем текст "+" вместо изображения
             completionButton.setImage(nil, for: .normal)
@@ -232,7 +203,6 @@ class TrackerCollectionViewCell: UICollectionViewCell {
             completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .light) // Плюсик 20px
             completionButton.backgroundColor = cellColor // Кружок в цвет привычки
             completionButton.alpha = 1.0
-            print("🔍 Debug: Установлен плюсик текстом, backgroundColor = \(completionButton.backgroundColor?.description ?? "nil")")
         }
         
         completionButton.isHidden = false
@@ -240,13 +210,6 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         // Принудительно обновляем layout
         completionButton.layoutIfNeeded()
         contentView.layoutIfNeeded()
-        
-        print("🔍 Debug: Кнопка настроена, frame = \(completionButton.frame)")
-        print("🔍 Debug: Кнопка isUserInteractionEnabled = \(completionButton.isUserInteractionEnabled)")
-        print("🔍 Debug: Кнопка zPosition = \(completionButton.layer.zPosition)")
-        print("🔍 Debug: Кнопка alpha = \(completionButton.alpha)")
-        print("🔍 Debug: Кнопка isHidden = \(completionButton.isHidden)")
-        print("🔍 Debug: Кнопка image = \(completionButton.image(for: .normal) != nil)")
     }
     
     private func getDayText(for count: Int) -> String {
