@@ -60,7 +60,9 @@ class TrackersViewController: UIViewController {
     }
     
     private func isTrackerCompleted(for tracker: Tracker) -> Bool {
-        return completedTrackers.contains { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
+        return completedTrackers.contains { record in
+            record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+        }
     }
     
     override func viewDidLoad() {
@@ -233,12 +235,12 @@ class TrackersViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.register(TrackerCollectionViewCell.self, forCellWithReuseIdentifier: TrackerCollectionViewCell.identifier)
         
-        // Создаём новый layout с правильными параметрами
+        // Создаём новый layout с динамическими параметрами
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.minimumInteritemSpacing = 0
+        layout.minimumInteritemSpacing = 9 // Расстояние между ячейками 9px
         layout.minimumLineSpacing = 8
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16) // Отступы 16px с каждой стороны
         
         collectionView.setCollectionViewLayout(layout, animated: false)
         
@@ -316,29 +318,45 @@ class TrackersViewController: UIViewController {
         
         let calendar = Calendar.current
         let today = Date()
+        
+        // Проверяем что нельзя отметить для будущей даты
         let canBeCompleted = calendar.compare(currentDate, to: today, toGranularity: .day) != .orderedDescending
         
+        print("🔍 Debug: currentDate = \(currentDate), today = \(today)")
         print("🔍 Debug: canBeCompleted = \(canBeCompleted)")
         
         if !canBeCompleted {
-            print("🔍 Debug: Трекер не может быть завершён")
+            print("🔍 Debug: Трекер не может быть завершён для будущей даты")
             return
         }
         
-        let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
-        
-        if completedTrackerIds.contains(tracker.id) {
-            print("🔍 Debug: Удаляю завершение трекера")
-            completedTrackers.removeAll { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
-            completedTrackerIds.remove(tracker.id)
-        } else {
-            print("🔍 Debug: Добавляю завершение трекера")
-            completedTrackers.append(record)
-            completedTrackerIds.insert(tracker.id)
+        // Проверяем был ли трекер уже завершён для этой даты
+        let isAlreadyCompleted = completedTrackers.contains { record in
+            record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
         }
+        
+        print("🔍 Debug: isAlreadyCompleted = \(isAlreadyCompleted)")
+        
+        if isAlreadyCompleted {
+            print("🔍 Debug: Удаляю завершение трекера для даты \(currentDate)")
+            // Удаляем запись для конкретной даты
+            completedTrackers.removeAll { record in
+                record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+            }
+        } else {
+            print("🔍 Debug: Добавляю завершение трекера для даты \(currentDate)")
+            let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
+            completedTrackers.append(record)
+        }
+        
+        // Обновляем Set после изменений
+        completedTrackerIds = Set(completedTrackers.map(\.trackerId))
         
         saveData()
         updateUI()
+        
+        print("🔍 Debug: Общее количество завершений для трекера '\(tracker.name)': \(getCompletedCount(for: tracker))")
+        print("🔍 Debug: Всего записей в completedTrackers: \(completedTrackers.count)")
     }
 }
 
@@ -369,7 +387,27 @@ extension TrackersViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 167, height: 90)
+        // Рассчитываем динамическую ширину ячеек
+        let collectionViewWidth = collectionView.bounds.width
+        print("🔍 Debug: collectionView.bounds.width = \(collectionViewWidth)")
+        
+        if collectionViewWidth == 0 {
+            // Если ширина ещё не рассчитана, используем ширину экрана
+            let screenWidth = UIScreen.main.bounds.width
+            let availableWidth = screenWidth - 32 // 16px слева + 16px справа
+            let spacing: CGFloat = 9 // Расстояние между ячейками
+            let cellWidth = (availableWidth - spacing) / 2 // Две ячейки в ряду
+            
+            print("🔍 Debug: screenWidth = \(screenWidth), availableWidth = \(availableWidth), cellWidth = \(cellWidth)")
+            return CGSize(width: cellWidth, height: 112) // Увеличил высоту с 90 до 112
+        } else {
+            let availableWidth = collectionViewWidth - 32 // 16px слева + 16px справа
+            let spacing: CGFloat = 9 // Расстояние между ячейками
+            let cellWidth = (availableWidth - spacing) / 2 // Две ячейки в ряду
+            
+            print("🔍 Debug: availableWidth = \(availableWidth), cellWidth = \(cellWidth)")
+            return CGSize(width: cellWidth, height: 112) // Увеличил высоту с 90 до 112
+        }
     }
 }
 
