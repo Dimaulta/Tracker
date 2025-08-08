@@ -54,7 +54,7 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         containerView.addSubview(emojiLabel)
         
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.font = UIFont(name: "SFPro-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        nameLabel.font = UIFont(name: "SFPro-Medium", size: 12) ?? UIFont.systemFont(ofSize: 11, weight: .medium)
         nameLabel.textColor = UIColor.white
         nameLabel.textAlignment = .left
         nameLabel.numberOfLines = 2

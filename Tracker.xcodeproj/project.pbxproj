@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		33E46B9B2E34BBA70077211A /* LaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E46B9A2E34BB930077211A /* LaunchScreen.swift */; };
 		33E46B9F2E34BD150077211A /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E46B9E2E34BD080077211A /* TabBarController.swift */; };
 /* End PBXBuildFile section */
 
@@ -32,7 +31,6 @@
 		33E46B622E3376550077211A /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E46B7B2E3376570077211A /* TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E46B852E3376570077211A /* TrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		33E46B9A2E34BB930077211A /* LaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreen.swift; sourceTree = "<group>"; };
 		33E46B9E2E34BD080077211A /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -100,7 +98,6 @@
 				33E46B882E3376570077211A /* TrackerUITests */,
 				33E46B632E3376550077211A /* Products */,
 				33E46B9E2E34BD080077211A /* TabBarController.swift */,
-				33E46B9A2E34BB930077211A /* LaunchScreen.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -258,7 +255,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33E46B9B2E34BBA70077211A /* LaunchScreen.swift in Sources */,
 				33E46B9F2E34BD150077211A /* TabBarController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
