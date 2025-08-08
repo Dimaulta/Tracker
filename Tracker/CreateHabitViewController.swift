@@ -47,8 +47,6 @@ class CreateHabitViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-
-        
         setupUI()
         setupConstraints()
         setupKeyboardHandling()
@@ -141,12 +139,6 @@ class CreateHabitViewController: UIViewController {
         scheduleValueLabel.isHidden = true
         categoryContainerView.addSubview(scheduleValueLabel)
         
-        // Убираем gesture recognizer с categoryLabel, оставляем только с categoryAreaView
-        // let categoryTap = UITapGestureRecognizer(target: self, action: #selector(categoryTapped))
-        // categoryLabel.addGestureRecognizer(categoryTap)
-        // categoryLabel.isUserInteractionEnabled = true
-        
-        // Создаём отдельную область для всей верхней части категории
         categoryAreaView.translatesAutoresizingMaskIntoConstraints = false
         categoryAreaView.backgroundColor = UIColor.clear
         categoryAreaView.isUserInteractionEnabled = true
@@ -155,7 +147,6 @@ class CreateHabitViewController: UIViewController {
         let categoryAreaTap = UITapGestureRecognizer(target: self, action: #selector(categoryTapped))
         categoryAreaView.addGestureRecognizer(categoryAreaTap)
         
-        // Создаём отдельную область для всей нижней части расписания
         scheduleAreaView.translatesAutoresizingMaskIntoConstraints = false
         scheduleAreaView.backgroundColor = UIColor.clear
         scheduleAreaView.isUserInteractionEnabled = true
@@ -232,13 +223,11 @@ class CreateHabitViewController: UIViewController {
             categoryLabelTopConstraint!,
             categoryLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
             
-            // Констрейнты для интерактивной области категории
             categoryAreaView.topAnchor.constraint(equalTo: categoryContainerView.topAnchor),
             categoryAreaView.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor),
             categoryAreaView.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor),
             categoryAreaView.bottomAnchor.constraint(equalTo: dividerView.topAnchor),
             
-            // Констрейнты для интерактивной области расписания
             scheduleAreaView.topAnchor.constraint(equalTo: dividerView.bottomAnchor),
             scheduleAreaView.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor),
             scheduleAreaView.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor),
@@ -350,8 +339,6 @@ class CreateHabitViewController: UIViewController {
         
         present(scheduleViewController, animated: true)
     }
-    
-
     
     @objc private func cancelButtonTapped() {
         dismiss(animated: true)

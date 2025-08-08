@@ -225,13 +225,12 @@ class TrackersViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(TrackerCollectionViewCell.self, forCellWithReuseIdentifier: TrackerCollectionViewCell.identifier)
-        
-        // Создаём новый layout с динамическими параметрами
+   
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.minimumInteritemSpacing = 9 // Расстояние между ячейками 9px
+        layout.minimumInteritemSpacing = 9 
         layout.minimumLineSpacing = 8
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16) // Отступы 16px с каждой стороны
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         
         collectionView.setCollectionViewLayout(layout, animated: false)
         
@@ -269,14 +268,14 @@ class TrackersViewController: UIViewController {
     }
     
     private func addTracker(_ tracker: Tracker) {
-        // Ищем существующую категорию "Важное"
+    
         if let existingCategoryIndex = categories.firstIndex(where: { $0.title == "Важное" }) {
-            // Создаём новую категорию с обновлённым списком трекеров
+      
             let existingCategory = categories[existingCategoryIndex]
             let updatedCategory = TrackerCategory(title: existingCategory.title, trackers: existingCategory.trackers + [tracker])
             categories[existingCategoryIndex] = updatedCategory
         } else {
-            // Создаём новую категорию только если её нет
+     
             let category = TrackerCategory(title: "Важное", trackers: [tracker])
             categories.append(category)
         }
@@ -300,21 +299,19 @@ class TrackersViewController: UIViewController {
     private func toggleTrackerCompletion(for tracker: Tracker) {
         let calendar = Calendar.current
         let today = Date()
-        
-        // Проверяем что нельзя отметить для будущей даты
+      
         let canBeCompleted = calendar.compare(currentDate, to: today, toGranularity: .day) != .orderedDescending
         
         if !canBeCompleted {
             return
         }
         
-        // Проверяем был ли трекер уже завершён для этой даты
         let isAlreadyCompleted = completedTrackers.contains { record in
             record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
         }
         
         if isAlreadyCompleted {
-            // Удаляем запись для конкретной даты
+ 
             completedTrackers.removeAll { record in
                 record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
             }
@@ -323,7 +320,6 @@ class TrackersViewController: UIViewController {
             completedTrackers.append(record)
         }
         
-        // Обновляем Set после изменений
         completedTrackerIds = Set(completedTrackers.map(\.trackerId))
         
         saveData()
@@ -343,12 +339,10 @@ extension TrackersViewController: UICollectionViewDataSource {
         let completedCount = getCompletedCount(for: tracker)
         let isCompleted = isTrackerCompleted(for: tracker)
         
-        // Сначала устанавливаем callback
         cell.onCompletionToggled = { [weak self] tracker in
             self?.toggleTrackerCompletion(for: tracker)
         }
         
-        // Потом настраиваем ячейку
         cell.configure(with: tracker, selectedDate: currentDate, isCompleted: isCompleted, completedCount: completedCount)
         
         return cell
@@ -358,23 +352,23 @@ extension TrackersViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        // Рассчитываем динамическую ширину ячеек
+      
         let collectionViewWidth = collectionView.bounds.width
         
         if collectionViewWidth == 0 {
-            // Если ширина ещё не рассчитана, используем ширину экрана
+          
             let screenWidth = UIScreen.main.bounds.width
-            let availableWidth = screenWidth - 32 // 16px слева + 16px справа
-            let spacing: CGFloat = 9 // Расстояние между ячейками
-            let cellWidth = (availableWidth - spacing) / 2 // Две ячейки в ряду
+            let availableWidth = screenWidth - 32 
+            let spacing: CGFloat = 9 
+            let cellWidth = (availableWidth - spacing) / 2 
             
-            return CGSize(width: cellWidth, height: 132) // Увеличил высоту для 90px цветной области
+            return CGSize(width: cellWidth, height: 132) 
         } else {
-            let availableWidth = collectionViewWidth - 32 // 16px слева + 16px справа
-            let spacing: CGFloat = 9 // Расстояние между ячейками
-            let cellWidth = (availableWidth - spacing) / 2 // Две ячейки в ряду
+            let availableWidth = collectionViewWidth - 32 
+            let spacing: CGFloat = 9 
+            let cellWidth = (availableWidth - spacing) / 2 
             
-            return CGSize(width: cellWidth, height: 132) // Увеличил высоту для 90px цветной области
+            return CGSize(width: cellWidth, height: 132) 
         }
     }
 }

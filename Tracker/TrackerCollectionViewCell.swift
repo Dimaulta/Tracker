@@ -34,7 +34,7 @@ class TrackerCollectionViewCell: UICollectionViewCell {
     
     private func setupUI() {
         contentView.backgroundColor = UIColor.clear
-        contentView.isUserInteractionEnabled = true // Добавляю это
+        contentView.isUserInteractionEnabled = true 
         
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -59,9 +59,8 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         nameLabel.textAlignment = .left
         nameLabel.numberOfLines = 2
         
-        // Добавляем line-height 18px согласно Figma
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 18.0 / 12.0 // line-height = 18px при font-size = 12px
+        paragraphStyle.lineHeightMultiple = 18.0 / 12.0 
         nameLabel.attributedText = NSAttributedString(
             string: nameLabel.text ?? "",
             attributes: [
@@ -81,12 +80,10 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         
         completionButton.translatesAutoresizingMaskIntoConstraints = false
         completionButton.layer.cornerRadius = 17
-        // completionButton.layer.borderWidth = 2
-        // completionButton.layer.borderColor = UIColor.red.cgColor
+
         completionButton.isUserInteractionEnabled = true
-        completionButton.layer.zPosition = 999 // Увеличиваю z-index
+        completionButton.layer.zPosition = 999 
         
-        // Добавляем gesture recognizer вместо target-action
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(completionButtonTapped))
         completionButton.addGestureRecognizer(tapGesture)
         
@@ -99,8 +96,8 @@ class TrackerCollectionViewCell: UICollectionViewCell {
             headerLabel.heightAnchor.constraint(equalToConstant: 18),
             
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor), // Убрал отступ
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor), // Убрал отступ
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor), 
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor), 
             containerView.heightAnchor.constraint(equalToConstant: 90),
             
             emojiLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
@@ -112,11 +109,9 @@ class TrackerCollectionViewCell: UICollectionViewCell {
             nameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             nameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             
-            // Счётчик: 16px от нижнего края цветной области, 12px от левого края цветной области
             daysLabel.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 16),
             daysLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             
-            // Кнопка под зелёной областью справа
             completionButton.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 8),
             completionButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             completionButton.widthAnchor.constraint(equalToConstant: 34),
@@ -135,16 +130,15 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         self.tracker = tracker
         self.selectedDate = selectedDate
         
-        // Убираем заголовок категории из ячейки
+
         headerLabel.isHidden = true
         
         emojiLabel.text = tracker.emoji
         
         nameLabel.text = tracker.name
         
-        // Обновляем attributedText с правильным line-height
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineHeightMultiple = 18.0 / 12.0 // line-height = 18px при font-size = 12px
+        paragraphStyle.lineHeightMultiple = 18.0 / 12.0 
         nameLabel.attributedText = NSAttributedString(
             string: tracker.name,
             attributes: [
@@ -165,11 +159,9 @@ class TrackerCollectionViewCell: UICollectionViewCell {
     func configure(with category: TrackerCategory, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
         self.selectedDate = selectedDate
         
-        // Показываем заголовок категории
         headerLabel.isHidden = false
         headerLabel.text = category.title
         
-        // Показываем первый трекер из категории (временно)
         if let firstTracker = category.trackers.first {
             self.tracker = firstTracker
             emojiLabel.text = firstTracker.emoji
@@ -188,26 +180,25 @@ class TrackerCollectionViewCell: UICollectionViewCell {
         let cellColor = UIColor(named: tracker?.color ?? "Green") ?? UIColor.systemGreen
         
         if isCompleted {
-            // Используем текст "✓" вместо изображения для гарантированно белого цвета
+
             completionButton.setImage(nil, for: .normal)
             completionButton.setTitle("✓", for: .normal)
             completionButton.setTitleColor(UIColor.white, for: .normal)
-            completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold) // Галочка 12x12px
-            completionButton.backgroundColor = cellColor.withAlphaComponent(0.3) // Прозрачность 30%
+            completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold) 
+            completionButton.backgroundColor = cellColor.withAlphaComponent(0.3) 
             completionButton.alpha = 1.0
         } else {
-            // Используем текст "+" вместо изображения
+
             completionButton.setImage(nil, for: .normal)
             completionButton.setTitle("+", for: .normal)
             completionButton.setTitleColor(UIColor.white, for: .normal)
-            completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .light) // Плюсик 20px
-            completionButton.backgroundColor = cellColor // Кружок в цвет привычки
+            completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .light) 
+            completionButton.backgroundColor = cellColor 
             completionButton.alpha = 1.0
         }
         
         completionButton.isHidden = false
         
-        // Принудительно обновляем layout
         completionButton.layoutIfNeeded()
         contentView.layoutIfNeeded()
     }
