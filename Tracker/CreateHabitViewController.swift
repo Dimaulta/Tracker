@@ -385,7 +385,9 @@ class CreateHabitViewController: UIViewController {
     private func validateForm() {
         let hasName = !(nameTextField.text?.isEmpty ?? true)
         let hasSchedule = !selectedDays.isEmpty
-        isFormValid = hasName && hasSchedule
+        let hasEmoji = !selectedEmoji.isEmpty
+        let hasColor = !selectedColor.isEmpty
+        isFormValid = hasName && hasSchedule && hasEmoji && hasColor
     }
     
     // MARK: - Actions
