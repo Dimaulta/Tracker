@@ -32,6 +32,10 @@ class CreateHabitViewController: UIViewController {
     private let colorLabel = UILabel()
     private let colorCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
+    // MARK: - Scroll View
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
+    
     // MARK: - Constraints for animation
     private var categoryLabelTopConstraint: NSLayoutConstraint?
     private var categoryValueLabelTopConstraint: NSLayoutConstraint?
@@ -76,6 +80,7 @@ class CreateHabitViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = UIColor(named: "WhiteDay")
         
+        setupScrollView()
         setupTitle()
         setupNameTextField()
         setupCategoryContainer()
@@ -91,7 +96,7 @@ class CreateHabitViewController: UIViewController {
         titleLabel.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
-        view.addSubview(titleLabel)
+        contentView.addSubview(titleLabel)
     }
     
     private func setupNameTextField() {
@@ -103,6 +108,8 @@ class CreateHabitViewController: UIViewController {
         nameTextField.layer.cornerRadius = 16
         nameTextField.borderStyle = .none
         nameTextField.delegate = self
+        nameTextField.isUserInteractionEnabled = true
+        nameTextField.isEnabled = true
         
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
         nameTextField.leftView = paddingView
@@ -206,6 +213,18 @@ class CreateHabitViewController: UIViewController {
         view.addSubview(createButton)
     }
     
+    private func setupScrollView() {
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.keyboardDismissMode = .interactive
+        scrollView.delaysContentTouches = false
+        view.addSubview(scrollView)
+        
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.isUserInteractionEnabled = true
+        scrollView.addSubview(contentView)
+    }
+    
     private func setupCharacterLimitLabel() {
         characterLimitLabel.translatesAutoresizingMaskIntoConstraints = false
         characterLimitLabel.text = "Ограничение 38 символов"
@@ -264,7 +283,8 @@ class CreateHabitViewController: UIViewController {
         colorCollectionView.register(ColorCollectionViewCell.self, forCellWithReuseIdentifier: ColorCollectionViewCell.identifier)
         colorCollectionView.delegate = self
         colorCollectionView.dataSource = self
-        colorCollectionView.isScrollEnabled = false
+        colorCollectionView.isScrollEnabled = true
+        colorCollectionView.showsVerticalScrollIndicator = false
         view.addSubview(colorCollectionView)
     }
     
@@ -279,10 +299,21 @@ class CreateHabitViewController: UIViewController {
         scheduleValueLabel.isHidden = true
         
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 60),
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100),
             
-            nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            
+            nameTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 120),
             nameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             nameTextField.widthAnchor.constraint(equalToConstant: 343),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
@@ -309,7 +340,7 @@ class CreateHabitViewController: UIViewController {
             colorCollectionView.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 30),
             colorCollectionView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             colorCollectionView.widthAnchor.constraint(equalToConstant: 312),
-            colorCollectionView.heightAnchor.constraint(equalToConstant: 156),
+            colorCollectionView.heightAnchor.constraint(equalToConstant: 200),
             
             categoryLabelTopConstraint!,
             categoryLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
@@ -350,12 +381,12 @@ class CreateHabitViewController: UIViewController {
             scheduleValueLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
             scheduleValueLabel.trailingAnchor.constraint(equalTo: categoryContainerView.trailingAnchor, constant: -40),
             
-            cancelButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
+            cancelButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             cancelButton.widthAnchor.constraint(equalToConstant: 166),
             cancelButton.heightAnchor.constraint(equalToConstant: 60),
             
-            createButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
+            createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             createButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             createButton.widthAnchor.constraint(equalToConstant: 161),
             createButton.heightAnchor.constraint(equalToConstant: 60)
@@ -364,6 +395,8 @@ class CreateHabitViewController: UIViewController {
     
     private func setupKeyboardHandling() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        tapGesture.delegate = self
         view.addGestureRecognizer(tapGesture)
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -554,5 +587,20 @@ extension CreateHabitViewController: UICollectionViewDelegate {
             selectedColor = colors[indexPath.item]
             colorCollectionView.reloadData()
         }
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension CreateHabitViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        let location = touch.location(in: view)
+        let textFieldFrame = nameTextField.convert(nameTextField.bounds, to: view)
+        
+        if textFieldFrame.contains(location) {
+            return false
+        }
+        
+        return true
     }
 } 
