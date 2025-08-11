@@ -43,8 +43,8 @@ class ColorCollectionViewCell: UICollectionViewCell {
         colorView.backgroundColor = UIColor(named: colorName)
         
         if isSelected {
-            contentView.layer.borderWidth = 3
-            contentView.layer.borderColor = UIColor(named: "Gray")?.cgColor
+            contentView.layer.borderWidth = 2
+            contentView.layer.borderColor = UIColor(named: colorName)?.cgColor
             contentView.layer.cornerRadius = 8
         } else {
             contentView.layer.borderWidth = 0
