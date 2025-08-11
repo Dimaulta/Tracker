@@ -45,7 +45,7 @@ class EmojiCollectionViewCell: UICollectionViewCell {
         emojiLabel.text = emoji
         
         if isSelected {
-            contentView.backgroundColor = UIColor(named: "Gray")
+            contentView.backgroundColor = UIColor(named: "Gray")?.withAlphaComponent(0.3)
             contentView.layer.cornerRadius = 8
         } else {
             contentView.backgroundColor = UIColor.clear
