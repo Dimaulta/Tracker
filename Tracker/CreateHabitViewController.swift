@@ -127,7 +127,7 @@ class CreateHabitViewController: UIViewController {
         categoryContainerView.backgroundColor = UIColor(named: "BackgroundDay")
         categoryContainerView.layer.cornerRadius = 16
         categoryContainerView.alpha = 1.0
-        view.addSubview(categoryContainerView)
+        contentView.addSubview(categoryContainerView)
         
         categoryLabel.translatesAutoresizingMaskIntoConstraints = false
         categoryLabel.text = "Категория"
@@ -232,7 +232,7 @@ class CreateHabitViewController: UIViewController {
         characterLimitLabel.textColor = UIColor(named: "Red")
         characterLimitLabel.textAlignment = .center
         characterLimitLabel.isHidden = true
-        view.addSubview(characterLimitLabel)
+        contentView.addSubview(characterLimitLabel)
     }
     
     private func setupEmojiSection() {
@@ -242,7 +242,7 @@ class CreateHabitViewController: UIViewController {
         emojiLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
         emojiLabel.textColor = UIColor(named: "BlackDay")
         emojiLabel.textAlignment = .left
-        view.addSubview(emojiLabel)
+        contentView.addSubview(emojiLabel)
         
         // Настройка коллекции эмодзи
         let emojiLayout = UICollectionViewFlowLayout()
@@ -258,7 +258,7 @@ class CreateHabitViewController: UIViewController {
         emojiCollectionView.delegate = self
         emojiCollectionView.dataSource = self
         emojiCollectionView.isScrollEnabled = false
-        view.addSubview(emojiCollectionView)
+        contentView.addSubview(emojiCollectionView)
     }
     
     private func setupColorSection() {
@@ -268,7 +268,7 @@ class CreateHabitViewController: UIViewController {
         colorLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
         colorLabel.textColor = UIColor(named: "BlackDay")
         colorLabel.textAlignment = .left
-        view.addSubview(colorLabel)
+        contentView.addSubview(colorLabel)
         
         // Настройка коллекции цветов
         let colorLayout = UICollectionViewFlowLayout()
@@ -285,7 +285,7 @@ class CreateHabitViewController: UIViewController {
         colorCollectionView.dataSource = self
         colorCollectionView.isScrollEnabled = true
         colorCollectionView.showsVerticalScrollIndicator = false
-        view.addSubview(colorCollectionView)
+        contentView.addSubview(colorCollectionView)
     }
     
     private func setupConstraints() {
@@ -307,7 +307,7 @@ class CreateHabitViewController: UIViewController {
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -50),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
@@ -318,29 +318,30 @@ class CreateHabitViewController: UIViewController {
             nameTextField.widthAnchor.constraint(equalToConstant: 343),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
-            characterLimitLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
-            characterLimitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            characterLimitLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 200),
+            characterLimitLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             
-            categoryContainerView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 20),
-            categoryContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            categoryContainerView.topAnchor.constraint(equalTo: characterLimitLabel.bottomAnchor, constant: 12),
+            categoryContainerView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             categoryContainerView.widthAnchor.constraint(equalToConstant: 343),
             categoryContainerView.heightAnchor.constraint(equalToConstant: 150),
             
             emojiLabel.topAnchor.constraint(equalTo: categoryContainerView.bottomAnchor, constant: 32),
-            emojiLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
+            emojiLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
             
             emojiCollectionView.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 31),
-            emojiCollectionView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emojiCollectionView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             emojiCollectionView.widthAnchor.constraint(equalToConstant: 312),
             emojiCollectionView.heightAnchor.constraint(equalToConstant: 156),
             
             colorLabel.topAnchor.constraint(equalTo: emojiCollectionView.bottomAnchor, constant: 40),
-            colorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
+            colorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
             
             colorCollectionView.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 30),
-            colorCollectionView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            colorCollectionView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             colorCollectionView.widthAnchor.constraint(equalToConstant: 312),
             colorCollectionView.heightAnchor.constraint(equalToConstant: 200),
+            colorCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
             
             categoryLabelTopConstraint!,
             categoryLabel.leadingAnchor.constraint(equalTo: categoryContainerView.leadingAnchor, constant: 16),
