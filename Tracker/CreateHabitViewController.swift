@@ -52,6 +52,7 @@ class CreateHabitViewController: UIViewController {
     private var selectedDays: Set<Int> = []
     private var selectedEmoji: String = "😪"
     private var selectedColor: String = "Green"
+    private var isHeaderHidden = false
     
     // MARK: - Data
     private let emojis = [
@@ -119,7 +120,7 @@ class CreateHabitViewController: UIViewController {
         nameTextField.rightView = rightPaddingView
         nameTextField.rightViewMode = .always
         
-        view.addSubview(nameTextField)
+        contentView.addSubview(nameTextField)
     }
     
     private func setupCategoryContainer() {
@@ -218,6 +219,7 @@ class CreateHabitViewController: UIViewController {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.keyboardDismissMode = .interactive
         scrollView.delaysContentTouches = false
+        scrollView.delegate = self
         view.addSubview(scrollView)
         
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -313,15 +315,15 @@ class CreateHabitViewController: UIViewController {
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             
-            nameTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 120),
-            nameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            nameTextField.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             nameTextField.widthAnchor.constraint(equalToConstant: 343),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
-            characterLimitLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 200),
+            characterLimitLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
             characterLimitLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             
-            categoryContainerView.topAnchor.constraint(equalTo: characterLimitLabel.bottomAnchor, constant: 12),
+            categoryContainerView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 20),
             categoryContainerView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             categoryContainerView.widthAnchor.constraint(equalToConstant: 343),
             categoryContainerView.heightAnchor.constraint(equalToConstant: 150),
@@ -603,5 +605,24 @@ extension CreateHabitViewController: UIGestureRecognizerDelegate {
         }
         
         return true
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension CreateHabitViewController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let scrollOffset = scrollView.contentOffset.y
+        let shouldHideHeader = scrollOffset > 50
+        
+        if shouldHideHeader != isHeaderHidden {
+            isHeaderHidden = shouldHideHeader
+            
+            UIView.animate(withDuration: 0.3, animations: {
+                self.titleLabel.alpha = shouldHideHeader ? 0 : 1
+                self.nameTextField.alpha = shouldHideHeader ? 0 : 1
+                self.characterLimitLabel.alpha = shouldHideHeader ? 0 : 1
+            })
+        }
     }
 } 
