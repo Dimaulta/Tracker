@@ -23,9 +23,10 @@ class TrackersViewController: UIViewController {
     
     // MARK: - Data
     private var categories: [TrackerCategory] = []
-    private var completedTrackers: [TrackerRecord] = []
     private var completedTrackerIds: Set<UUID> = []
     var currentDate: Date = Date()
+    
+    private let coreDataManager = CoreDataManager.shared
     
     // MARK: - Computed Properties
     private var visibleCategories: [TrackerCategory] {
@@ -49,13 +50,11 @@ class TrackersViewController: UIViewController {
     }
     
     private func getCompletedCount(for tracker: Tracker) -> Int {
-        return completedTrackers.filter { $0.trackerId == tracker.id }.count
+        return coreDataManager.fetchRecords(for: tracker.id).count
     }
     
     private func isTrackerCompleted(for tracker: Tracker) -> Bool {
-        return completedTrackers.contains { record in
-            record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
-        }
+        return coreDataManager.isTrackerCompleted(trackerId: tracker.id, date: currentDate)
     }
     
     override func viewDidLoad() {
@@ -246,41 +245,20 @@ class TrackersViewController: UIViewController {
     
     // MARK: - Data Management
     private func loadData() {
-        if let data = UserDefaults.standard.data(forKey: "categories"),
-           let savedCategories = try? JSONDecoder().decode([TrackerCategory].self, from: data) {
-            categories = savedCategories
-        }
-        if let data = UserDefaults.standard.data(forKey: "completedTrackers"),
-           let savedCompletedTrackers = try? JSONDecoder().decode([TrackerRecord].self, from: data) {
-            completedTrackers = savedCompletedTrackers
-            completedTrackerIds = Set(completedTrackers.map(\.trackerId))
-        }
+        let coreDataCategories = coreDataManager.fetchCategories()
+        categories = coreDataCategories.map { $0.toTrackerCategory() }
         updateUI()
-    }
-    
-    private func saveData() {
-        if let data = try? JSONEncoder().encode(categories) {
-            UserDefaults.standard.set(data, forKey: "categories")
-        }
-        if let data = try? JSONEncoder().encode(completedTrackers) {
-            UserDefaults.standard.set(data, forKey: "completedTrackers")
-        }
     }
     
     private func addTracker(_ tracker: Tracker) {
-    
-        if let existingCategoryIndex = categories.firstIndex(where: { $0.title == "Важное" }) {
-      
-            let existingCategory = categories[existingCategoryIndex]
-            let updatedCategory = TrackerCategory(title: existingCategory.title, trackers: existingCategory.trackers + [tracker])
-            categories[existingCategoryIndex] = updatedCategory
-        } else {
-     
-            let category = TrackerCategory(title: "Важное", trackers: [tracker])
-            categories.append(category)
-        }
-        saveData()
-        updateUI()
+        _ = coreDataManager.createTracker(
+            name: tracker.name,
+            color: tracker.color,
+            emoji: tracker.emoji,
+            schedule: tracker.schedule,
+            categoryTitle: "Важное"
+        )
+        loadData()
     }
     
     func updateUI() {
@@ -306,23 +284,7 @@ class TrackersViewController: UIViewController {
             return
         }
         
-        let isAlreadyCompleted = completedTrackers.contains { record in
-            record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
-        }
-        
-        if isAlreadyCompleted {
- 
-            completedTrackers.removeAll { record in
-                record.trackerId == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
-            }
-        } else {
-            let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
-            completedTrackers.append(record)
-        }
-        
-        completedTrackerIds = Set(completedTrackers.map(\.trackerId))
-        
-        saveData()
+        coreDataManager.toggleTrackerCompletion(trackerId: tracker.id, date: currentDate)
         updateUI()
     }
 }
