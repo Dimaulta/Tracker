@@ -26,7 +26,9 @@ class TrackersViewController: UIViewController {
     private var completedTrackerIds: Set<UUID> = []
     var currentDate: Date = Date()
     
-    private let coreDataManager = CoreDataManager.shared
+    private let trackerStore = TrackerStore()
+    private let categoryStore = TrackerCategoryStore()
+    private let recordStore = TrackerRecordStore()
     
     // MARK: - Computed Properties
     private var visibleCategories: [TrackerCategory] {
@@ -50,11 +52,11 @@ class TrackersViewController: UIViewController {
     }
     
     private func getCompletedCount(for tracker: Tracker) -> Int {
-        return coreDataManager.fetchRecords(for: tracker.id).count
+        return recordStore.getCompletedCount(for: tracker.id)
     }
     
     private func isTrackerCompleted(for tracker: Tracker) -> Bool {
-        return coreDataManager.isTrackerCompleted(trackerId: tracker.id, date: currentDate)
+        return recordStore.isTrackerCompleted(trackerId: tracker.id, date: currentDate)
     }
     
     override func viewDidLoad() {
@@ -245,13 +247,12 @@ class TrackersViewController: UIViewController {
     
     // MARK: - Data Management
     private func loadData() {
-        let coreDataCategories = coreDataManager.fetchCategories()
-        categories = coreDataCategories.map { $0.toTrackerCategory() }
+        categories = categoryStore.fetchCategories()
         updateUI()
     }
     
     private func addTracker(_ tracker: Tracker) {
-        _ = coreDataManager.createTracker(
+        _ = trackerStore.createTracker(
             name: tracker.name,
             color: tracker.color,
             emoji: tracker.emoji,
@@ -284,7 +285,7 @@ class TrackersViewController: UIViewController {
             return
         }
         
-        coreDataManager.toggleTrackerCompletion(trackerId: tracker.id, date: currentDate)
+        recordStore.toggleTrackerCompletion(trackerId: tracker.id, date: currentDate)
         updateUI()
     }
 }
