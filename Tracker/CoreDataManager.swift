@@ -49,7 +49,6 @@ class CoreDataManager {
         tracker.emoji = emoji
         tracker.schedule = schedule as NSArray
         
-        // Find or create category
         let category = getOrCreateCategory(title: categoryTitle)
         tracker.category = category
         
@@ -87,7 +86,6 @@ class CoreDataManager {
             print("Error fetching category: \(error)")
         }
         
-        // Create new category
         let category = TrackerCategoryCoreData(context: context)
         category.title = title
         saveContext()
@@ -111,7 +109,6 @@ class CoreDataManager {
         record.trackerId = trackerId
         record.date = date
         
-        // Find tracker and set relationship
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", trackerId as CVarArg)
         
@@ -182,7 +179,7 @@ class CoreDataManager {
                 print("Error removing record: \(error)")
             }
         } else {
-            // Add record
+            
             _ = createRecord(trackerId: trackerId, date: date)
         }
         

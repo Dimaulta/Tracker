@@ -46,8 +46,6 @@ class ScheduleViewController: UIViewController {
 
     }
     
-
-    
     private func setupHeader() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Расписание"

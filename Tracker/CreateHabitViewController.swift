@@ -238,7 +238,7 @@ class CreateHabitViewController: UIViewController {
     }
     
     private func setupEmojiSection() {
-        // Настройка лейбла "Emoji"
+        
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
         emojiLabel.text = "Emoji"
         emojiLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -246,7 +246,6 @@ class CreateHabitViewController: UIViewController {
         emojiLabel.textAlignment = .left
         contentView.addSubview(emojiLabel)
         
-        // Настройка коллекции эмодзи
         let emojiLayout = UICollectionViewFlowLayout()
         emojiLayout.scrollDirection = .vertical
         emojiLayout.minimumInteritemSpacing = 0
@@ -264,7 +263,7 @@ class CreateHabitViewController: UIViewController {
     }
     
     private func setupColorSection() {
-        // Настройка лейбла "Цвет"
+        
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
         colorLabel.text = "Цвет"
         colorLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -272,7 +271,6 @@ class CreateHabitViewController: UIViewController {
         colorLabel.textAlignment = .left
         contentView.addSubview(colorLabel)
         
-        // Настройка коллекции цветов
         let colorLayout = UICollectionViewFlowLayout()
         colorLayout.scrollDirection = .vertical
         colorLayout.minimumInteritemSpacing = 0
@@ -432,8 +430,6 @@ class CreateHabitViewController: UIViewController {
         view.endEditing(true)
     }
     
-
-    
     @objc private func keyboardWillShow(notification: NSNotification) {
     }
     
@@ -520,8 +516,6 @@ class CreateHabitViewController: UIViewController {
         validateForm()
     }
 }
-
-
 
 // MARK: - UITextFieldDelegate
 
