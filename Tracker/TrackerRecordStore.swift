@@ -15,10 +15,14 @@ protocol TrackerRecordStoreProtocol {
     func isTrackerCompleted(trackerId: UUID, date: Date) -> Bool
     func toggleTrackerCompletion(trackerId: UUID, date: Date)
     func getCompletedCount(for trackerId: UUID) -> Int
+    func startObservingChanges(for trackerId: UUID?, onUpdate: @escaping ([TrackerRecord]) -> Void)
+    func stopObservingChanges()
 }
 
-class TrackerRecordStore: TrackerRecordStoreProtocol {
+class TrackerRecordStore: NSObject, TrackerRecordStoreProtocol {
     private let coreDataManager = CoreDataManager.shared
+    private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>?
+    private var onUpdateCallback: (([TrackerRecord]) -> Void)?
     
     func createRecord(trackerId: UUID, date: Date) -> TrackerRecord {
         let coreDataRecord = coreDataManager.createRecord(trackerId: trackerId, date: date)
@@ -56,5 +60,51 @@ class TrackerRecordStore: TrackerRecordStoreProtocol {
     
     func getCompletedCount(for trackerId: UUID) -> Int {
         return coreDataManager.fetchRecords(for: trackerId).count
+    }
+    
+    func startObservingChanges(for trackerId: UUID?, onUpdate: @escaping ([TrackerRecord]) -> Void) {
+        self.onUpdateCallback = onUpdate
+        
+        let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        
+        if let trackerId = trackerId {
+            request.predicate = NSPredicate(format: "trackerId == %@", trackerId as CVarArg)
+        }
+        
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: coreDataManager.context,
+            sectionNameKeyPath: nil,
+            cacheName: "TrackerRecordStore"
+        )
+        
+        fetchedResultsController?.delegate = self
+        
+        do {
+            try fetchedResultsController?.performFetch()
+            notifyUpdate()
+        } catch {
+            print("Error performing fetch: \(error)")
+        }
+    }
+    
+    func stopObservingChanges() {
+        fetchedResultsController?.delegate = nil
+        fetchedResultsController = nil
+        onUpdateCallback = nil
+    }
+    
+    private func notifyUpdate() {
+        guard let fetchedObjects = fetchedResultsController?.fetchedObjects else { return }
+        let records = fetchedObjects.map { $0.toTrackerRecord() }
+        onUpdateCallback?(records)
+    }
+}
+
+// MARK: - NSFetchedResultsControllerDelegate
+extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        notifyUpdate()
     }
 }

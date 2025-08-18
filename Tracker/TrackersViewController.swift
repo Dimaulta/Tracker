@@ -63,7 +63,12 @@ class TrackersViewController: UIViewController {
         super.viewDidLoad()
         
         setupUI()
-        loadData()
+        startObservingDataChanges()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopObservingDataChanges()
     }
     
     private func setupUI() {
@@ -246,6 +251,19 @@ class TrackersViewController: UIViewController {
     }
     
     // MARK: - Data Management
+    private func startObservingDataChanges() {
+        categoryStore.startObservingChanges { [weak self] categories in
+            DispatchQueue.main.async {
+                self?.categories = categories
+                self?.updateUI()
+            }
+        }
+    }
+    
+    private func stopObservingDataChanges() {
+        categoryStore.stopObservingChanges()
+    }
+    
     private func loadData() {
         categories = categoryStore.fetchCategories()
         updateUI()
