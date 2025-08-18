@@ -7,7 +7,14 @@
 
 import UIKit
 
-class EmojiCollectionViewCell: UICollectionViewCell {
+// MARK: - UIFont Extension
+extension UIFont {
+    static func emojiTitleFont(size: CGFloat = 32) -> UIFont {
+        UIFont(name: "SFPro-Bold", size: size) ?? UIFont.boldSystemFont(ofSize: size)
+    }
+}
+
+final class EmojiCollectionViewCell: UICollectionViewCell {
     
     // MARK: - UI Elements
     private let emojiLabel = UILabel()
@@ -28,7 +35,7 @@ class EmojiCollectionViewCell: UICollectionViewCell {
         contentView.backgroundColor = UIColor.clear
         
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        emojiLabel.font = UIFont(name: "SFPro-Bold", size: 32) ?? UIFont.boldSystemFont(ofSize: 32)
+        emojiLabel.font = UIFont.emojiTitleFont()
         emojiLabel.textAlignment = .center
         emojiLabel.textColor = UIColor(named: "BlackDay")
         contentView.addSubview(emojiLabel)

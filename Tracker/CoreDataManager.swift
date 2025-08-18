@@ -8,7 +8,7 @@
 import CoreData
 import Foundation
 
-class CoreDataManager {
+final class CoreDataManager {
     static let shared = CoreDataManager()
     
     private init() {}
@@ -25,11 +25,11 @@ class CoreDataManager {
                     // Try to load again
                     container.loadPersistentStores { _, secondError in
                         if let secondError = secondError as NSError? {
-                            fatalError("Unresolved error after store deletion: \(secondError), \(secondError.userInfo)")
+                            assertionFailure("Unresolved error after store deletion: \(secondError), \(secondError.userInfo)")
                         }
                     }
                 } else {
-                    fatalError("Unresolved error \(error), \(error.userInfo)")
+                    assertionFailure("Unresolved error \(error), \(error.userInfo)")
                 }
             }
         }
@@ -58,7 +58,7 @@ class CoreDataManager {
                 try context.save()
             } catch {
                 let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                assertionFailure("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
     }

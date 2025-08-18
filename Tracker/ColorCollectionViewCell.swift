@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ColorCollectionViewCell: UICollectionViewCell {
+final class ColorCollectionViewCell: UICollectionViewCell {
     
     // MARK: - UI Elements
     private let colorView = UIView()
@@ -26,7 +26,6 @@ class ColorCollectionViewCell: UICollectionViewCell {
     
     private func setupUI() {
         contentView.backgroundColor = UIColor.clear
-        
         colorView.translatesAutoresizingMaskIntoConstraints = false
         colorView.layer.cornerRadius = 8
         contentView.addSubview(colorView)

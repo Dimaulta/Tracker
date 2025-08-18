@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CreateHabitViewController: UIViewController {
+final class CreateHabitViewController: UIViewController {
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
