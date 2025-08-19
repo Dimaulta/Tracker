@@ -6,7 +6,7 @@
 //
 import UIKit
 
-class ScheduleViewController: UIViewController {
+final class ScheduleViewController: UIViewController {
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -45,8 +45,6 @@ class ScheduleViewController: UIViewController {
         setupDoneButton()
 
     }
-    
-
     
     private func setupHeader() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
