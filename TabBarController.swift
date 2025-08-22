@@ -2,7 +2,7 @@
 //  TabBarController.swift
 //  Tracker
 //
-//  Created by Ульта on 26.07.2025.
+//  Created by Ульта on 26.07.2025./
 //
 
 import UIKit
