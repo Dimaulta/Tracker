@@ -112,10 +112,14 @@ final class OnboardingPageViewController: UIViewController {
         
         view.addSubview(actionButton)
         
+        // Адаптивный отступ в зависимости от размера экрана
+        let screenHeight = UIScreen.main.bounds.height
+        let buttonTopSpacing: CGFloat = screenHeight <= 667 ? 120 : 170 // iPhone SE: 90px, iPhone 15+: 170px
+        
         NSLayoutConstraint.activate([
             actionButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             actionButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            actionButton.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 170),
+            actionButton.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: buttonTopSpacing),
             actionButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
