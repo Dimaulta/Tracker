@@ -136,7 +136,7 @@ final class TrackersViewController: UIViewController {
     
     private func setupCategoryHeader() {
         categoryHeaderLabel.translatesAutoresizingMaskIntoConstraints = false
-        categoryHeaderLabel.text = "Важное"
+        categoryHeaderLabel.text = ""
         categoryHeaderLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
         categoryHeaderLabel.textColor = UIColor(named: "BlackDay")
         categoryHeaderLabel.isHidden = true
@@ -269,15 +269,27 @@ final class TrackersViewController: UIViewController {
         updateUI()
     }
     
-    private func addTracker(_ tracker: Tracker) {
+    private func addTracker(_ tracker: Tracker, category: TrackerCategory) {
         _ = trackerStore.createTracker(
             name: tracker.name,
             color: tracker.color,
             emoji: tracker.emoji,
             schedule: tracker.schedule,
-            categoryTitle: "Важное"
+            categoryTitle: category.title
         )
         loadData()
+    }
+    
+    private func updateCategoryHeader() {
+        // Находим категорию для первого трекера в списке
+        if let firstTracker = visibleTrackers.first {
+            for category in categories {
+                if category.trackers.contains(where: { $0.id == firstTracker.id }) {
+                    categoryHeaderLabel.text = category.title
+                    break
+                }
+            }
+        }
     }
     
     func updateUI() {
@@ -290,6 +302,11 @@ final class TrackersViewController: UIViewController {
         emptyStateLabel.isHidden = !isEmpty
         collectionView.isHidden = isEmpty
         categoryHeaderLabel.isHidden = isEmpty
+        
+        // Обновляем заголовок категории на основе реальных данных
+        if !isEmpty {
+            updateCategoryHeader()
+        }
     }
     
     // MARK: - Tracker Management
@@ -356,7 +373,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 
 // MARK: - CreateHabitViewControllerDelegate
 extension TrackersViewController: CreateHabitViewControllerDelegate {
-    func didCreateTracker(_ tracker: Tracker) {
-        addTracker(tracker)
+    func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) {
+        addTracker(tracker, category: category)
     }
 } 

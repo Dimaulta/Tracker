@@ -52,6 +52,7 @@ final class CreateHabitViewController: UIViewController {
     private var selectedDays: Set<Int> = []
     private var selectedEmoji: String = "😪"
     private var selectedColor: String = "Green"
+    private var selectedCategory: TrackerCategory?
     private var isHeaderHidden = false
     
     // MARK: - Data
@@ -142,7 +143,7 @@ final class CreateHabitViewController: UIViewController {
         categoryContainerView.addSubview(categoryArrowImageView)
         
         categoryValueLabel.translatesAutoresizingMaskIntoConstraints = false
-        categoryValueLabel.text = "Важное"
+        categoryValueLabel.text = ""
         categoryValueLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         categoryValueLabel.textColor = UIColor(named: "Gray")
         categoryValueLabel.isHidden = true
@@ -421,7 +422,8 @@ final class CreateHabitViewController: UIViewController {
         let hasSchedule = !selectedDays.isEmpty
         let hasEmoji = !selectedEmoji.isEmpty
         let hasColor = !selectedColor.isEmpty
-        isFormValid = hasName && hasSchedule && hasEmoji && hasColor
+        let hasCategory = selectedCategory != nil
+        isFormValid = hasName && hasSchedule && hasEmoji && hasColor && hasCategory
     }
     
     // MARK: - Actions
@@ -437,17 +439,12 @@ final class CreateHabitViewController: UIViewController {
     }
     
     @objc private func categoryTapped() {
-        if !(nameTextField.text?.isEmpty ?? true) {
-            categoryValueLabel.isHidden = false
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                UIView.animate(withDuration: 0.5, animations: {
-                    self.categoryLabelTopConstraint?.constant = 20
-                    self.categoryValueLabelTopConstraint?.constant = 45
-                    self.view.layoutIfNeeded()
-                })
-            }
-        }
+        print("CreateHabitViewController: categoryTapped called")
+        let categoryVC = CategoryViewController()
+        categoryVC.delegate = self
+        print("CreateHabitViewController: Set delegate for CategoryViewController")
+        categoryVC.modalPresentationStyle = .pageSheet
+        present(categoryVC, animated: true)
     }
     
     @objc private func scheduleTapped() {
@@ -470,6 +467,8 @@ final class CreateHabitViewController: UIViewController {
     }
     
         @objc private func createButtonTapped() {
+        guard let category = selectedCategory else { return }
+        
         let tracker = Tracker(
             name: nameTextField.text ?? "",
             color: selectedColor,
@@ -477,7 +476,7 @@ final class CreateHabitViewController: UIViewController {
             schedule: Array(selectedDays)
         )
         
-        delegate?.didCreateTracker(tracker)
+        delegate?.didCreateTracker(tracker, category: category)
         
         dismiss(animated: true)
     }
@@ -618,5 +617,27 @@ extension CreateHabitViewController: UIScrollViewDelegate {
                 self.characterLimitLabel.alpha = shouldHideHeader ? 0 : 1
             })
         }
+    }
+}
+
+// MARK: - CategoryViewControllerDelegate
+
+extension CreateHabitViewController: CategoryViewControllerDelegate {
+    func didSelectCategory(_ category: TrackerCategory) {
+        print("CreateHabitViewController: didSelectCategory called with category: \(category.title)")
+        selectedCategory = category
+        categoryValueLabel.text = category.title
+        categoryValueLabel.isHidden = false
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            UIView.animate(withDuration: 0.5, animations: {
+                self.categoryLabelTopConstraint?.constant = 20
+                self.categoryValueLabelTopConstraint?.constant = 45
+                self.view.layoutIfNeeded()
+            })
+        }
+        
+        validateForm()
+        print("CreateHabitViewController: Category selection completed")
     }
 } 
