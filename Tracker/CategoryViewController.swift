@@ -85,20 +85,21 @@ final class CategoryViewController: UIViewController {
         addCategoryButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         addCategoryButton.backgroundColor = UIColor(named: "BlackDay")
         addCategoryButton.layer.cornerRadius = 16
+        addCategoryButton.contentEdgeInsets = UIEdgeInsets(top: 19, left: 32, bottom: 19, right: 32)
         addCategoryButton.addTarget(self, action: #selector(addCategoryButtonTapped), for: .touchUpInside)
         view.addSubview(addCategoryButton)
         
         // Устанавливаем констрейнты для tableView и addCategoryButton вместе
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: addCategoryButton.topAnchor, constant: -20),
             
             addCategoryButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             addCategoryButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             addCategoryButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            addCategoryButton.heightAnchor.constraint(equalToConstant: 60)
+            addCategoryButton.heightAnchor.constraint(equalToConstant: 58)
         ])
     }
     
@@ -184,7 +185,9 @@ extension CategoryViewController: UITableViewDataSource {
         
         let category = viewModel.categories[indexPath.row]
         let isSelected = viewModel.selectedCategory?.title == category.title
-        cell.configure(with: category, isSelected: isSelected)
+        let isFirst = indexPath.row == 0
+        let isLast = indexPath.row == viewModel.categories.count - 1
+        cell.configure(with: category, isSelected: isSelected, isFirst: isFirst, isLast: isLast)
         
         return cell
     }
