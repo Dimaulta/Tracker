@@ -17,6 +17,7 @@ protocol CategoryViewModelProtocol {
     func loadCategories()
     func selectCategory(_ category: TrackerCategory)
     func createCategory(title: String)
+    func updateCategoryTitle(_ category: TrackerCategory, newTitle: String)
     func deleteCategory(_ category: TrackerCategory)
 }
 
@@ -70,6 +71,11 @@ final class CategoryViewModel: CategoryViewModelProtocol {
         // Уведомляем о создании категории
         print("CategoryViewModel: Calling onCategoryCreated callback")
         onCategoryCreated?(newCategory)
+    }
+    
+    func updateCategoryTitle(_ category: TrackerCategory, newTitle: String) {
+        categoryStore.updateCategoryTitle(category, newTitle: newTitle)
+        // Данные обновятся автоматически через NSFetchedResultsController
     }
     
     func deleteCategory(_ category: TrackerCategory) {

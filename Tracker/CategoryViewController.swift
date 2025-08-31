@@ -203,23 +203,39 @@ final class CategoryViewController: UIViewController {
         
         contextMenuView = contextMenu
         
-        // Добавляем затемнение
-        let dimView = UIView()
-        dimView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-        dimView.translatesAutoresizingMaskIntoConstraints = false
-        dimView.tag = 999
-        view.insertSubview(dimView, belowSubview: contextMenu)
+        // Добавляем блюр с "дыркой" для активной ячейки
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.tag = 999
+        view.insertSubview(blurView, belowSubview: contextMenu)
         
         NSLayoutConstraint.activate([
-            dimView.topAnchor.constraint(equalTo: view.topAnchor),
-            dimView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            dimView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            dimView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            blurView.topAnchor.constraint(equalTo: view.topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        
+        // Создаем маску с вырезанной областью для активной ячейки
+        DispatchQueue.main.async {
+            let maskLayer = CAShapeLayer()
+            let path = UIBezierPath(rect: blurView.bounds)
+            
+            // Вырезаем область активной ячейки
+            let cellRect = self.tableView.rectForRow(at: indexPath)
+            let cellRectInView = self.tableView.convert(cellRect, to: self.view)
+            let holePath = UIBezierPath(roundedRect: cellRectInView, cornerRadius: 16)
+            path.append(holePath.reversing())
+            
+            maskLayer.path = path.cgPath
+            maskLayer.fillRule = .evenOdd
+            blurView.layer.mask = maskLayer
+        }
         
         // Добавляем тап для скрытия
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideContextMenu))
-        dimView.addGestureRecognizer(tapGesture)
+        blurView.addGestureRecognizer(tapGesture)
     }
     
     @objc private func hideContextMenu() {
@@ -272,8 +288,12 @@ extension CategoryViewController: UITableViewDelegate {
 extension CategoryViewController: CategoryContextMenuViewDelegate {
     func didTapEditCategory(_ category: TrackerCategory) {
         hideContextMenu()
-        // TODO: Реализовать редактирование категории
-        print("Edit category: \(category.title)")
+        
+        // Создаем экран редактирования категории
+        let editCategoryVC = EditCategoryViewController(category: category)
+        editCategoryVC.delegate = self
+        editCategoryVC.modalPresentationStyle = .pageSheet
+        present(editCategoryVC, animated: true)
     }
     
     func didTapDeleteCategory(_ category: TrackerCategory) {
@@ -292,5 +312,12 @@ extension CategoryViewController: CategoryContextMenuViewDelegate {
         })
         
         present(alert, animated: true)
+    }
+}
+
+// MARK: - EditCategoryViewControllerDelegate
+extension CategoryViewController: EditCategoryViewControllerDelegate {
+    func didUpdateCategory(_ category: TrackerCategory, newTitle: String) {
+        viewModel.updateCategoryTitle(category, newTitle: newTitle)
     }
 }
