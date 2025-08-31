@@ -39,7 +39,7 @@ final class CategoryContextMenuView: UIView {
         backgroundColor = UIColor.clear
         
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = UIColor(named: "LightGray")?.withAlphaComponent(0.8)
+        containerView.backgroundColor = UIColor(named: "LightGray")
         containerView.layer.cornerRadius = 13
         addSubview(containerView)
         

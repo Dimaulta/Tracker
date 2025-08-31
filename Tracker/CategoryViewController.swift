@@ -197,45 +197,57 @@ final class CategoryViewController: UIViewController {
         let cellBottomY = cellRect.maxY
         
         NSLayoutConstraint.activate([
-            contextMenu.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            contextMenu.topAnchor.constraint(equalTo: view.topAnchor, constant: cellBottomY + 62)
+            contextMenu.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            contextMenu.topAnchor.constraint(equalTo: view.topAnchor, constant: cellBottomY + 72)
         ])
         
         contextMenuView = contextMenu
         
-        // Добавляем блюр с "дыркой" для активной ячейки
-        let blurEffect = UIBlurEffect(style: .systemMaterial)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        blurView.tag = 999
-        view.insertSubview(blurView, belowSubview: contextMenu)
+        // Добавляем затемнение с "дыркой" для активной ячейки и контекстного меню
+        let dimView = UIView()
+        dimView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        dimView.translatesAutoresizingMaskIntoConstraints = false
+        dimView.tag = 999
+        view.insertSubview(dimView, belowSubview: contextMenu)
         
         NSLayoutConstraint.activate([
-            blurView.topAnchor.constraint(equalTo: view.topAnchor),
-            blurView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            blurView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            dimView.topAnchor.constraint(equalTo: view.topAnchor),
+            dimView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            dimView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            dimView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        // Создаем маску с вырезанной областью для активной ячейки
+        // Создаем маску с вырезанными областями для активной ячейки и контекстного меню
         DispatchQueue.main.async {
             let maskLayer = CAShapeLayer()
-            let path = UIBezierPath(rect: blurView.bounds)
+            let path = UIBezierPath(rect: dimView.bounds)
             
             // Вырезаем область активной ячейки
             let cellRect = self.tableView.rectForRow(at: indexPath)
             let cellRectInView = self.tableView.convert(cellRect, to: self.view)
-            let holePath = UIBezierPath(roundedRect: cellRectInView, cornerRadius: 16)
-            path.append(holePath.reversing())
+            // Используем точные размеры ячейки с отступами как в tableView
+            let cellHoleRect = CGRect(
+                x: cellRectInView.minX + 16, // отступ слева как в tableView
+                y: cellRectInView.minY,
+                width: cellRectInView.width - 32, // вычитаем отступы слева и справа
+                height: cellRectInView.height
+            )
+            let cellHolePath = UIBezierPath(roundedRect: cellHoleRect, cornerRadius: 16)
+            path.append(cellHolePath)
+            
+            // Вырезаем область контекстного меню
+            let menuRect = contextMenu.convert(contextMenu.bounds, to: self.view)
+            let menuHolePath = UIBezierPath(roundedRect: menuRect, cornerRadius: 13)
+            path.append(menuHolePath)
             
             maskLayer.path = path.cgPath
             maskLayer.fillRule = .evenOdd
-            blurView.layer.mask = maskLayer
+            dimView.layer.mask = maskLayer
         }
         
         // Добавляем тап для скрытия
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideContextMenu))
-        blurView.addGestureRecognizer(tapGesture)
+        dimView.addGestureRecognizer(tapGesture)
     }
     
     @objc private func hideContextMenu() {
