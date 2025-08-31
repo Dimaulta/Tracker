@@ -96,7 +96,7 @@ final class CategoryViewController: UIViewController {
         addCategoryButton.addTarget(self, action: #selector(addCategoryButtonTapped), for: .touchUpInside)
         view.addSubview(addCategoryButton)
         
-        // Устанавливаем констрейнты для tableView и addCategoryButton вместе
+
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -146,19 +146,15 @@ final class CategoryViewController: UIViewController {
         }
         
         viewModel.onCategorySelected = { [weak self] category in
-            print("CategoryViewController: onCategorySelected callback triggered with category: \(category.title)")
             // НЕ вызываем делегата автоматически - только при ручном выборе
             // НЕ закрываем окно - пользователь должен сам выбрать категорию
         }
         
         viewModel.onCategoryCreated = { [weak self] category in
-            print("CategoryViewController: onCategoryCreated callback triggered with category: \(category.title)")
             // При создании новой категории автоматически выбираем её и обновляем UI
             DispatchQueue.main.async {
-                print("CategoryViewController: Selecting category: \(category.title)")
                 self?.viewModel.selectCategory(category)
                 // НЕ закрываем CategoryViewController - показываем список с новой категорией
-                print("CategoryViewController: Category created, showing updated list")
             }
         }
     }
@@ -182,17 +178,14 @@ final class CategoryViewController: UIViewController {
     
     // MARK: - Context Menu
     private func showContextMenu(for category: TrackerCategory, at indexPath: IndexPath) {
-        // Скрываем предыдущее меню если есть
         hideContextMenu()
         
-        // Создаем новое меню
         let contextMenu = CategoryContextMenuView()
         contextMenu.delegate = self
         contextMenu.configure(with: category)
         contextMenu.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(contextMenu)
         
-        // Позиционируем меню под ячейкой
         let cellRect = tableView.rectForRow(at: indexPath)
         let cellBottomY = cellRect.maxY
         
@@ -217,25 +210,21 @@ final class CategoryViewController: UIViewController {
             dimView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        // Создаем маску с вырезанными областями для активной ячейки и контекстного меню
         DispatchQueue.main.async {
             let maskLayer = CAShapeLayer()
             let path = UIBezierPath(rect: dimView.bounds)
             
-            // Вырезаем область активной ячейки
             let cellRect = self.tableView.rectForRow(at: indexPath)
             let cellRectInView = self.tableView.convert(cellRect, to: self.view)
-            // Используем точные размеры ячейки с отступами как в tableView
             let cellHoleRect = CGRect(
-                x: cellRectInView.minX + 16, // отступ слева как в tableView
+                x: cellRectInView.minX + 16,
                 y: cellRectInView.minY,
-                width: cellRectInView.width - 32, // вычитаем отступы слева и справа
+                width: cellRectInView.width - 32,
                 height: cellRectInView.height
             )
             let cellHolePath = UIBezierPath(roundedRect: cellHoleRect, cornerRadius: 16)
             path.append(cellHolePath)
             
-            // Вырезаем область контекстного меню
             let menuRect = contextMenu.convert(contextMenu.bounds, to: self.view)
             let menuHolePath = UIBezierPath(roundedRect: menuRect, cornerRadius: 13)
             path.append(menuHolePath)
@@ -245,7 +234,6 @@ final class CategoryViewController: UIViewController {
             dimView.layer.mask = maskLayer
         }
         
-        // Добавляем тап для скрытия
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideContextMenu))
         dimView.addGestureRecognizer(tapGesture)
     }
@@ -272,7 +260,6 @@ extension CategoryViewController: UITableViewDataSource {
         let isLast = indexPath.row == viewModel.categories.count - 1
         cell.configure(with: category, isSelected: isSelected, isFirst: isFirst, isLast: isLast)
         
-        // Настраиваем долгое нажатие
         cell.onLongPress = { [weak self] category in
             self?.showContextMenu(for: category, at: indexPath)
         }
@@ -289,8 +276,6 @@ extension CategoryViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let category = viewModel.categories[indexPath.row]
-        print("CategoryViewController: User manually selected category: \(category.title)")
-        // Вызываем делегата и закрываем окно при ручном выборе категории
         delegate?.didSelectCategory(category)
         dismiss(animated: true)
     }
@@ -301,7 +286,6 @@ extension CategoryViewController: CategoryContextMenuViewDelegate {
     func didTapEditCategory(_ category: TrackerCategory) {
         hideContextMenu()
         
-        // Создаем экран редактирования категории
         let editCategoryVC = EditCategoryViewController(category: category)
         editCategoryVC.delegate = self
         editCategoryVC.modalPresentationStyle = .pageSheet
@@ -311,7 +295,6 @@ extension CategoryViewController: CategoryContextMenuViewDelegate {
     func didTapDeleteCategory(_ category: TrackerCategory) {
         hideContextMenu()
         
-        // Показываем алерт для подтверждения удаления
         let alert = UIAlertController(
             title: "Удалить категорию?",
             message: "Все трекеры в этой категории также будут удалены.",

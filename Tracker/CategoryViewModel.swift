@@ -58,28 +58,20 @@ final class CategoryViewModel: CategoryViewModelProtocol {
     }
     
     func selectCategory(_ category: TrackerCategory) {
-        print("CategoryViewModel: selectCategory called with category: \(category.title)")
         selectedCategory = category
-        print("CategoryViewModel: Calling onCategorySelected callback")
         onCategorySelected?(category)
     }
     
     func createCategory(title: String) {
-        print("CategoryViewModel: createCategory called with title: \(title)")
         let newCategory = categoryStore.createCategory(title: title)
-        print("CategoryViewModel: Created category: \(newCategory.title)")
-        // Уведомляем о создании категории
-        print("CategoryViewModel: Calling onCategoryCreated callback")
         onCategoryCreated?(newCategory)
     }
     
     func updateCategoryTitle(_ category: TrackerCategory, newTitle: String) {
         categoryStore.updateCategoryTitle(category, newTitle: newTitle)
-        // Данные обновятся автоматически через NSFetchedResultsController
     }
     
     func deleteCategory(_ category: TrackerCategory) {
         categoryStore.deleteCategory(category)
-        // Данные обновятся автоматически через NSFetchedResultsController
     }
 }

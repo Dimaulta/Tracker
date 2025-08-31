@@ -38,7 +38,6 @@ final class CategoryTableViewCell: UITableViewCell {
         containerView.layer.cornerRadius = 16
         contentView.addSubview(containerView)
         
-        // Добавляем долгое нажатие
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
         longPressGesture.minimumPressDuration = 0.5
         containerView.addGestureRecognizer(longPressGesture)
@@ -79,32 +78,24 @@ final class CategoryTableViewCell: UITableViewCell {
         titleLabel.text = category.title
         checkmarkImageView.isHidden = !isSelected
         
-        // Сохраняем категорию для долгого нажатия
         self.category = category
         
-        // Удаляем все существующие разделители
         containerView.subviews.forEach { subview in
             if subview != titleLabel && subview != checkmarkImageView {
                 subview.removeFromSuperview()
             }
         }
         
-        // Настраиваем скругленные углы
         if isFirst && isLast {
-            // Если только одна ячейка - скругляем все углы
             containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         } else if isFirst {
-            // Первая ячейка - скругляем только верхние углы
             containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         } else if isLast {
-            // Последняя ячейка - скругляем только нижние углы
             containerView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         } else {
-            // Средние ячейки - без скруглений
             containerView.layer.maskedCorners = []
         }
         
-        // Добавляем разделитель для всех ячеек кроме последней
         if !isLast {
             let separatorView = UIView()
             separatorView.translatesAutoresizingMaskIntoConstraints = false

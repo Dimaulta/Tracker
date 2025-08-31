@@ -88,7 +88,6 @@ final class EditCategoryViewController: UIViewController {
         categoryTextField.leftView = paddingView
         categoryTextField.leftViewMode = .always
         
-        // Настраиваем кнопку очистки
         setupClearButton()
         
         view.addSubview(categoryTextField)
@@ -206,12 +205,10 @@ extension EditCategoryViewController: UITextFieldDelegate {
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
         
-        // Ограничиваем длину названия категории
         if newText.count > 50 {
             return false
         }
         
-        // Проверяем валидность нового текста сразу
         let hasText = !newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let isDifferent = newText.trimmingCharacters(in: .whitespacesAndNewlines) != category.title
         isFormValid = hasText && isDifferent
@@ -233,7 +230,6 @@ extension EditCategoryViewController: UIGestureRecognizerDelegate {
         let location = touch.location(in: view)
         let textFieldFrame = categoryTextField.convert(categoryTextField.bounds, to: view)
         
-        // Не сворачиваем клавиатуру при клике на текстовое поле
         if textFieldFrame.contains(location) {
             return false
         }

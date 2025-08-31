@@ -439,10 +439,8 @@ final class CreateHabitViewController: UIViewController {
     }
     
     @objc private func categoryTapped() {
-        print("CreateHabitViewController: categoryTapped called")
         let categoryVC = CategoryViewController()
         categoryVC.delegate = self
-        print("CreateHabitViewController: Set delegate for CategoryViewController")
         categoryVC.modalPresentationStyle = .pageSheet
         present(categoryVC, animated: true)
     }
@@ -624,7 +622,6 @@ extension CreateHabitViewController: UIScrollViewDelegate {
 
 extension CreateHabitViewController: CategoryViewControllerDelegate {
     func didSelectCategory(_ category: TrackerCategory) {
-        print("CreateHabitViewController: didSelectCategory called with category: \(category.title)")
         selectedCategory = category
         categoryValueLabel.text = category.title
         categoryValueLabel.isHidden = false
@@ -638,6 +635,5 @@ extension CreateHabitViewController: CategoryViewControllerDelegate {
         }
         
         validateForm()
-        print("CreateHabitViewController: Category selection completed")
     }
 } 

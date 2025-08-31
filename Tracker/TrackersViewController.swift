@@ -32,21 +32,14 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Computed Properties
     private var visibleCategories: [TrackerCategory] {
-        print("TrackersViewController: Total categories: \(categories.count)")
-        for category in categories {
-            print("TrackersViewController: Category '\(category.title)' has \(category.trackers.count) trackers")
-        }
-        
         let result = categories.map { category in
             let filteredTrackers = category.trackers.filter { tracker in
                 let isScheduled = tracker.isScheduled(for: currentDate)
-                print("TrackersViewController: Tracker '\(tracker.name)' in category '\(category.title)' scheduled for current date: \(isScheduled)")
                 return isScheduled
             }
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
         
-        print("TrackersViewController: visibleCategories count: \(result.count)")
         return result
     }
     
@@ -289,7 +282,6 @@ final class TrackersViewController: UIViewController {
     }
     
         private func updateCategoryHeader() {
-        // Показываем заголовок первой категории, которая имеет трекеры на текущую дату
         if let firstCategory = visibleCategories.first {
             categoryHeaderLabel.text = firstCategory.title
         }
@@ -304,9 +296,7 @@ final class TrackersViewController: UIViewController {
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
         collectionView.isHidden = isEmpty
-        categoryHeaderLabel.isHidden = true // Скрываем общий заголовок, так как теперь у каждой секции свой
-        
-        // Не вызываем updateCategoryHeader, так как заголовки показываются в секциях
+        categoryHeaderLabel.isHidden = true
     }
     
     // MARK: - Tracker Management

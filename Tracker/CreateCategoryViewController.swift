@@ -42,7 +42,6 @@ final class CreateCategoryViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Очищаем поле ввода при каждом появлении экрана
         categoryTextField.text = ""
         validateForm()
     }
@@ -85,7 +84,6 @@ final class CreateCategoryViewController: UIViewController {
         categoryTextField.leftView = paddingView
         categoryTextField.leftViewMode = .always
         
-        // Настраиваем галочку
         setupCheckmarkView()
         
         view.addSubview(categoryTextField)
@@ -175,11 +173,9 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     @objc private func keyboardWillShow(notification: NSNotification) {
-        // Можно добавить логику для поднятия UI при появлении клавиатуры
     }
     
     @objc private func keyboardWillHide(notification: NSNotification) {
-        // Можно добавить логику для опускания UI при скрытии клавиатуры
     }
     
     @objc private func doneButtonTapped() {
@@ -188,11 +184,8 @@ final class CreateCategoryViewController: UIViewController {
             return
         }
         
-        print("CreateCategoryViewController: Creating category with title: \(categoryTitle)")
         viewModel.createCategory(title: categoryTitle)
         
-        // Закрываем CreateCategoryViewController и возвращаемся к списку категорий
-        print("CreateCategoryViewController: Dismissing to return to category list")
         self.dismiss(animated: true)
     }
 }
@@ -207,12 +200,10 @@ extension CreateCategoryViewController: UITextFieldDelegate {
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
         
-        // Ограничиваем длину названия категории
         if newText.count > 50 {
             return false
         }
         
-        // Проверяем валидность нового текста сразу
         let hasText = !newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         isFormValid = hasText
         updateDoneButtonState()
@@ -231,7 +222,6 @@ extension CreateCategoryViewController: UIGestureRecognizerDelegate {
         let location = touch.location(in: view)
         let textFieldFrame = categoryTextField.convert(categoryTextField.bounds, to: view)
         
-        // Не сворачиваем клавиатуру при клике на текстовое поле
         if textFieldFrame.contains(location) {
             return false
         }

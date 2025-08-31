@@ -68,7 +68,7 @@ final class OnboardingPageViewController: UIViewController {
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
-        titleLabel.baselineAdjustment = .alignBaselines // vertical-align: bottom
+        titleLabel.baselineAdjustment = .alignBaselines
         
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineHeightMultiple = 32.0 / 32.0
@@ -81,7 +81,7 @@ final class OnboardingPageViewController: UIViewController {
                 .paragraphStyle: paragraphStyle,
                 .font: titleLabel.font ?? UIFont.systemFont(ofSize: 32, weight: .bold),
                 .foregroundColor: UIColor(named: "BlackDay") ?? UIColor.black,
-                .kern: 0.0 // letter-spacing: 0px
+                .kern: 0.0
             ]
         )
         titleLabel.attributedText = attributedString
@@ -105,16 +105,14 @@ final class OnboardingPageViewController: UIViewController {
         actionButton.layer.cornerRadius = 16
         actionButton.layer.masksToBounds = true
         
-        // Добавляем padding через contentEdgeInsets
         actionButton.contentEdgeInsets = UIEdgeInsets(top: 19, left: 32, bottom: 19, right: 32)
         
         actionButton.addTarget(self, action: #selector(actionButtonTapped), for: .touchUpInside)
         
         view.addSubview(actionButton)
         
-        // Адаптивный отступ в зависимости от размера экрана
         let screenHeight = UIScreen.main.bounds.height
-        let buttonTopSpacing: CGFloat = screenHeight <= 667 ? 120 : 170 // iPhone SE: 90px, iPhone 15+: 170px
+        let buttonTopSpacing: CGFloat = screenHeight <= 667 ? 120 : 170
         
         NSLayoutConstraint.activate([
             actionButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
