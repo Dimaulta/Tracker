@@ -139,20 +139,18 @@ final class CategoryViewController: UIViewController {
         
         viewModel.onCategorySelected = { [weak self] category in
             print("CategoryViewController: onCategorySelected callback triggered with category: \(category.title)")
-            self?.delegate?.didSelectCategory(category)
-            // Не закрываем окно здесь, так как это может быть дублирующий вызов
-            // Окно закроется в onCategoryCreated или при ручном выборе категории
+            // НЕ вызываем делегата автоматически - только при ручном выборе
+            // НЕ закрываем окно - пользователь должен сам выбрать категорию
         }
         
         viewModel.onCategoryCreated = { [weak self] category in
             print("CategoryViewController: onCategoryCreated callback triggered with category: \(category.title)")
-            // При создании новой категории сразу вызываем делегата и закрываем все окна
+            // При создании новой категории автоматически выбираем её и обновляем UI
             DispatchQueue.main.async {
-                print("CategoryViewController: Calling delegate with category: \(category.title)")
-                self?.delegate?.didSelectCategory(category)
-                // Закрываем CategoryViewController и возвращаемся к экрану создания привычки
-                print("CategoryViewController: Dismissing to return to habit creation")
-                self?.dismiss(animated: true)
+                print("CategoryViewController: Selecting category: \(category.title)")
+                self?.viewModel.selectCategory(category)
+                // НЕ закрываем CategoryViewController - показываем список с новой категорией
+                print("CategoryViewController: Category created, showing updated list")
             }
         }
     }
@@ -200,8 +198,9 @@ extension CategoryViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let category = viewModel.categories[indexPath.row]
-        viewModel.selectCategory(category)
-        // Закрываем окно при ручном выборе категории
+        print("CategoryViewController: User manually selected category: \(category.title)")
+        // Вызываем делегата и закрываем окно при ручном выборе категории
+        delegate?.didSelectCategory(category)
         dismiss(animated: true)
     }
 }

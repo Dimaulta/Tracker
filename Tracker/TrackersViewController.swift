@@ -32,14 +32,21 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Computed Properties
     private var visibleCategories: [TrackerCategory] {
+        print("TrackersViewController: Total categories: \(categories.count)")
+        for category in categories {
+            print("TrackersViewController: Category '\(category.title)' has \(category.trackers.count) trackers")
+        }
+        
         let result = categories.map { category in
             let filteredTrackers = category.trackers.filter { tracker in
                 let isScheduled = tracker.isScheduled(for: currentDate)
+                print("TrackersViewController: Tracker '\(tracker.name)' in category '\(category.title)' scheduled for current date: \(isScheduled)")
                 return isScheduled
             }
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
         
+        print("TrackersViewController: visibleCategories count: \(result.count)")
         return result
     }
     
@@ -231,6 +238,7 @@ final class TrackersViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(TrackerCollectionViewCell.self, forCellWithReuseIdentifier: TrackerCollectionViewCell.identifier)
+        collectionView.register(CategoryHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CategoryHeaderView.identifier)
    
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -280,15 +288,10 @@ final class TrackersViewController: UIViewController {
         loadData()
     }
     
-    private func updateCategoryHeader() {
-        // Находим категорию для первого трекера в списке
-        if let firstTracker = visibleTrackers.first {
-            for category in categories {
-                if category.trackers.contains(where: { $0.id == firstTracker.id }) {
-                    categoryHeaderLabel.text = category.title
-                    break
-                }
-            }
+        private func updateCategoryHeader() {
+        // Показываем заголовок первой категории, которая имеет трекеры на текущую дату
+        if let firstCategory = visibleCategories.first {
+            categoryHeaderLabel.text = firstCategory.title
         }
     }
     
@@ -296,17 +299,14 @@ final class TrackersViewController: UIViewController {
         collectionView.reloadData()
         collectionView.collectionViewLayout.invalidateLayout()
         
-        let isEmpty = visibleTrackers.isEmpty
+        let isEmpty = visibleCategories.isEmpty
         
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
         collectionView.isHidden = isEmpty
-        categoryHeaderLabel.isHidden = isEmpty
+        categoryHeaderLabel.isHidden = true // Скрываем общий заголовок, так как теперь у каждой секции свой
         
-        // Обновляем заголовок категории на основе реальных данных
-        if !isEmpty {
-            updateCategoryHeader()
-        }
+        // Не вызываем updateCategoryHeader, так как заголовки показываются в секциях
     }
     
     // MARK: - Tracker Management
@@ -327,13 +327,19 @@ final class TrackersViewController: UIViewController {
 
 // MARK: - UICollectionViewDataSource
 extension TrackersViewController: UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return visibleCategories.count
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return visibleTrackers.count
+        let category = visibleCategories[section]
+        return category.trackers.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCollectionViewCell.identifier, for: indexPath) as! TrackerCollectionViewCell
-        let tracker = visibleTrackers[indexPath.item]
+        let category = visibleCategories[indexPath.section]
+        let tracker = category.trackers[indexPath.item]
         let completedCount = getCompletedCount(for: tracker)
         let isCompleted = isTrackerCompleted(for: tracker)
         
@@ -344,6 +350,16 @@ extension TrackersViewController: UICollectionViewDataSource {
         cell.configure(with: tracker, selectedDate: currentDate, isCompleted: isCompleted, completedCount: completedCount)
         
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if kind == UICollectionView.elementKindSectionHeader {
+            let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "CategoryHeader", for: indexPath) as! CategoryHeaderView
+            let category = visibleCategories[indexPath.section]
+            headerView.configure(with: category.title)
+            return headerView
+        }
+        return UICollectionReusableView()
     }
 }
 
@@ -368,6 +384,10 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
             
             return CGSize(width: cellWidth, height: 132) 
         }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        return CGSize(width: collectionView.bounds.width, height: 30)
     }
 }
 

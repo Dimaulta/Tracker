@@ -62,8 +62,8 @@ final class CategoryTableViewCell: UITableViewCell {
             
             checkmarkImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             checkmarkImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            checkmarkImageView.widthAnchor.constraint(equalToConstant: 24),
-            checkmarkImageView.heightAnchor.constraint(equalToConstant: 24)
+            checkmarkImageView.widthAnchor.constraint(equalToConstant: 16),
+            checkmarkImageView.heightAnchor.constraint(equalToConstant: 16)
         ])
     }
     

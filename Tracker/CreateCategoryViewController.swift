@@ -199,6 +199,10 @@ final class CreateCategoryViewController: UIViewController {
 
 // MARK: - UITextFieldDelegate
 extension CreateCategoryViewController: UITextFieldDelegate {
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        validateForm()
+    }
+    
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
@@ -208,7 +212,11 @@ extension CreateCategoryViewController: UITextFieldDelegate {
             return false
         }
         
-        validateForm()
+        // Проверяем валидность нового текста сразу
+        let hasText = !newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        isFormValid = hasText
+        updateDoneButtonState()
+        
         return true
     }
     
