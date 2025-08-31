@@ -11,6 +11,11 @@ protocol CategoryViewControllerDelegate: AnyObject {
     func didSelectCategory(_ category: TrackerCategory)
 }
 
+protocol CategoryViewControllerContextMenuDelegate: AnyObject {
+    func didTapEditCategory(_ category: TrackerCategory)
+    func didTapDeleteCategory(_ category: TrackerCategory)
+}
+
 final class CategoryViewController: UIViewController {
     
     // MARK: - UI Elements
@@ -23,6 +28,8 @@ final class CategoryViewController: UIViewController {
     // MARK: - Properties
     private var viewModel: CategoryViewModelProtocol
     weak var delegate: CategoryViewControllerDelegate?
+    weak var contextMenuDelegate: CategoryViewControllerContextMenuDelegate?
+    private var contextMenuView: CategoryContextMenuView?
     
     // MARK: - Initialization
     init(viewModel: CategoryViewModelProtocol = CategoryViewModel()) {
@@ -172,6 +179,54 @@ final class CategoryViewController: UIViewController {
         createCategoryVC.modalPresentationStyle = .pageSheet
         present(createCategoryVC, animated: true)
     }
+    
+    // MARK: - Context Menu
+    private func showContextMenu(for category: TrackerCategory, at indexPath: IndexPath) {
+        // Скрываем предыдущее меню если есть
+        hideContextMenu()
+        
+        // Создаем новое меню
+        let contextMenu = CategoryContextMenuView()
+        contextMenu.delegate = self
+        contextMenu.configure(with: category)
+        contextMenu.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(contextMenu)
+        
+        // Позиционируем меню под ячейкой
+        let cellRect = tableView.rectForRow(at: indexPath)
+        let cellBottomY = cellRect.maxY
+        
+        NSLayoutConstraint.activate([
+            contextMenu.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            contextMenu.topAnchor.constraint(equalTo: view.topAnchor, constant: cellBottomY + 62)
+        ])
+        
+        contextMenuView = contextMenu
+        
+        // Добавляем затемнение
+        let dimView = UIView()
+        dimView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        dimView.translatesAutoresizingMaskIntoConstraints = false
+        dimView.tag = 999
+        view.insertSubview(dimView, belowSubview: contextMenu)
+        
+        NSLayoutConstraint.activate([
+            dimView.topAnchor.constraint(equalTo: view.topAnchor),
+            dimView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            dimView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            dimView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
+        // Добавляем тап для скрытия
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideContextMenu))
+        dimView.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func hideContextMenu() {
+        contextMenuView?.removeFromSuperview()
+        contextMenuView = nil
+        view.viewWithTag(999)?.removeFromSuperview()
+    }
 }
 
 // MARK: - UITableViewDataSource
@@ -189,6 +244,11 @@ extension CategoryViewController: UITableViewDataSource {
         let isLast = indexPath.row == viewModel.categories.count - 1
         cell.configure(with: category, isSelected: isSelected, isFirst: isFirst, isLast: isLast)
         
+        // Настраиваем долгое нажатие
+        cell.onLongPress = { [weak self] category in
+            self?.showContextMenu(for: category, at: indexPath)
+        }
+        
         return cell
     }
 }
@@ -205,5 +265,32 @@ extension CategoryViewController: UITableViewDelegate {
         // Вызываем делегата и закрываем окно при ручном выборе категории
         delegate?.didSelectCategory(category)
         dismiss(animated: true)
+    }
+}
+
+// MARK: - CategoryContextMenuViewDelegate
+extension CategoryViewController: CategoryContextMenuViewDelegate {
+    func didTapEditCategory(_ category: TrackerCategory) {
+        hideContextMenu()
+        // TODO: Реализовать редактирование категории
+        print("Edit category: \(category.title)")
+    }
+    
+    func didTapDeleteCategory(_ category: TrackerCategory) {
+        hideContextMenu()
+        
+        // Показываем алерт для подтверждения удаления
+        let alert = UIAlertController(
+            title: "Удалить категорию?",
+            message: "Все трекеры в этой категории также будут удалены.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.viewModel.deleteCategory(category)
+        })
+        
+        present(alert, animated: true)
     }
 }

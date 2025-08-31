@@ -16,6 +16,8 @@ final class CategoryTableViewCell: UITableViewCell {
     
     // MARK: - Properties
     static let identifier = "CategoryCell"
+    var onLongPress: ((TrackerCategory) -> Void)?
+    private var category: TrackerCategory?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -35,6 +37,11 @@ final class CategoryTableViewCell: UITableViewCell {
         containerView.backgroundColor = UIColor(red: 0.90, green: 0.91, blue: 0.92, alpha: 0.30)
         containerView.layer.cornerRadius = 16
         contentView.addSubview(containerView)
+        
+        // Добавляем долгое нажатие
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        containerView.addGestureRecognizer(longPressGesture)
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
@@ -71,6 +78,9 @@ final class CategoryTableViewCell: UITableViewCell {
     func configure(with category: TrackerCategory, isSelected: Bool, isFirst: Bool, isLast: Bool) {
         titleLabel.text = category.title
         checkmarkImageView.isHidden = !isSelected
+        
+        // Сохраняем категорию для долгого нажатия
+        self.category = category
         
         // Удаляем все существующие разделители
         containerView.subviews.forEach { subview in
@@ -114,5 +124,14 @@ final class CategoryTableViewCell: UITableViewCell {
         super.prepareForReuse()
         titleLabel.text = nil
         checkmarkImageView.isHidden = true
+        category = nil
+    }
+    
+    // MARK: - Actions
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            guard let category = category else { return }
+            onLongPress?(category)
+        }
     }
 }
