@@ -196,7 +196,7 @@ final class CategoryViewController: UIViewController {
         
         contextMenuView = contextMenu
         
-        // Добавляем затемнение с "дыркой" для активной ячейки и контекстного меню
+        // Добавляем затемнение с "дыркой" для активной ячейки и контекстного  меню
         let dimView = UIView()
         dimView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         dimView.translatesAutoresizingMaskIntoConstraints = false
