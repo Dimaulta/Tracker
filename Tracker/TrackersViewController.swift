@@ -22,17 +22,28 @@ final class TrackersViewController: UIViewController {
     private let categoryHeaderLabel = UILabel()
     
     // MARK: - Data
-    private var categories: [TrackerCategory] = []
     private var completedTrackerIds: Set<UUID> = []
     var currentDate: Date = Date()
     
-    private let trackerStore = TrackerStore()
-    private let categoryStore = TrackerCategoryStore()
+    private var viewModel: TrackerViewModelProtocol
     private let recordStore = TrackerRecordStore()
+    
+    // MARK: - Context Menu
+    private var currentTracker: Tracker?
+    
+    // MARK: - Initialization
+    init(viewModel: TrackerViewModelProtocol = TrackerViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - Computed Properties
     private var visibleCategories: [TrackerCategory] {
-        let result = categories.map { category in
+        let result = viewModel.categories.map { category in
             let filteredTrackers = category.trackers.filter { tracker in
                 let isScheduled = tracker.isScheduled(for: currentDate)
                 return isScheduled
@@ -45,7 +56,7 @@ final class TrackersViewController: UIViewController {
     
     private var visibleTrackers: [Tracker] {
         var allTrackers: [Tracker] = []
-        for category in categories {
+        for category in viewModel.categories {
             allTrackers.append(contentsOf: category.trackers)
         }
         return allTrackers.filter { $0.isScheduled(for: currentDate) }
@@ -63,12 +74,12 @@ final class TrackersViewController: UIViewController {
         super.viewDidLoad()
         
         setupUI()
-        startObservingDataChanges()
+        setupBindings()
+        viewModel.loadData()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        stopObservingDataChanges()
     }
     
     private func setupUI() {
@@ -252,33 +263,20 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Data Management
-    private func startObservingDataChanges() {
-        categoryStore.startObservingChanges { [weak self] categories in
+    private func setupBindings() {
+        viewModel.onCategoriesUpdate = { [weak self] in
             DispatchQueue.main.async {
-                self?.categories = categories
                 self?.updateUI()
             }
         }
     }
     
-    private func stopObservingDataChanges() {
-        categoryStore.stopObservingChanges()
-    }
-    
-    private func loadData() {
-        categories = categoryStore.fetchCategories()
-        updateUI()
-    }
-    
     private func addTracker(_ tracker: Tracker, category: TrackerCategory) {
-        _ = trackerStore.createTracker(
-            name: tracker.name,
-            color: tracker.color,
-            emoji: tracker.emoji,
-            schedule: tracker.schedule,
-            categoryTitle: category.title
-        )
-        loadData()
+        viewModel.createTracker(tracker, category: category)
+    }
+    
+    private func updateTracker(_ tracker: Tracker, newName: String, newEmoji: String, newColor: String, newSchedule: [Int], newCategory: TrackerCategory? = nil) {
+        viewModel.updateTracker(tracker, newName: newName, newEmoji: newEmoji, newColor: newColor, newSchedule: newSchedule, newCategory: newCategory)
     }
     
         private func updateCategoryHeader() {
@@ -313,6 +311,75 @@ final class TrackersViewController: UIViewController {
         recordStore.toggleTrackerCompletion(trackerId: tracker.id, date: currentDate)
         updateUI()
     }
+    
+    // MARK: - Context Menu
+    private func showContextMenu(for tracker: Tracker) {
+        currentTracker = tracker
+        
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        // Кнопка "Закрепить"
+        let pinAction = UIAlertAction(title: "Закрепить", style: .default) { [weak self] _ in
+            self?.pinTracker(tracker)
+        }
+        actionSheet.addAction(pinAction)
+        
+        // Кнопка "Редактировать"
+        let editAction = UIAlertAction(title: "Редактировать", style: .default) { [weak self] _ in
+            self?.editTracker(tracker)
+        }
+        actionSheet.addAction(editAction)
+        
+        // Кнопка "Удалить"
+        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.deleteTracker(tracker)
+        }
+        actionSheet.addAction(deleteAction)
+        
+        // Кнопка "Отмена"
+        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel)
+        actionSheet.addAction(cancelAction)
+        
+        // Для iPad
+        if let popover = actionSheet.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        present(actionSheet, animated: true)
+    }
+    
+    private func pinTracker(_ tracker: Tracker) {
+        // TODO: Реализовать закрепление трекера
+        print("Закрепить трекер: \(tracker.name)")
+    }
+    
+    private func editTracker(_ tracker: Tracker) {
+        let editTrackerVC = EditTrackerViewController(tracker: tracker)
+        editTrackerVC.delegate = self
+        editTrackerVC.modalPresentationStyle = .pageSheet
+        present(editTrackerVC, animated: true)
+    }
+    
+    private func deleteTracker(_ tracker: Tracker) {
+        let alert = UIAlertController(
+            title: "Удалить привычку?",
+            message: "Это действие нельзя отменить.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.performDeleteTracker(tracker)
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    private func performDeleteTracker(_ tracker: Tracker) {
+        viewModel.deleteTracker(tracker)
+    }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -335,6 +402,10 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         cell.onCompletionToggled = { [weak self] tracker in
             self?.toggleTrackerCompletion(for: tracker)
+        }
+        
+        cell.onLongPress = { [weak self] tracker in
+            self?.showContextMenu(for: tracker)
         }
         
         cell.configure(with: tracker, selectedDate: currentDate, isCompleted: isCompleted, completedCount: completedCount)
@@ -385,5 +456,13 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 extension TrackersViewController: CreateHabitViewControllerDelegate {
     func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) {
         addTracker(tracker, category: category)
+    }
+}
+
+
+// MARK: - EditTrackerViewControllerDelegate
+extension TrackersViewController: EditTrackerViewControllerDelegate {
+    func didUpdateTracker(_ tracker: Tracker, newName: String, newEmoji: String, newColor: String, newSchedule: [Int], newCategory: TrackerCategory?) {
+        updateTracker(tracker, newName: newName, newEmoji: newEmoji, newColor: newColor, newSchedule: newSchedule, newCategory: newCategory)
     }
 } 

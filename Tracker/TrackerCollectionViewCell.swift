@@ -22,6 +22,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private var tracker: Tracker?
     private var selectedDate: Date = Date()
     var onCompletionToggled: ((Tracker) -> Void)?
+    var onLongPress: ((Tracker) -> Void)?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -34,7 +35,12 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     
     private func setupUI() {
         contentView.backgroundColor = UIColor.clear
-        contentView.isUserInteractionEnabled = true 
+        contentView.isUserInteractionEnabled = true
+        
+        // Добавляем длинное нажатие для контекстного меню
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        contentView.addGestureRecognizer(longPressGesture) 
         
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -124,6 +130,13 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             return 
         }
         onCompletionToggled?(tracker)
+    }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            guard let tracker = tracker else { return }
+            onLongPress?(tracker)
+        }
     }
     
     func configure(with tracker: Tracker, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
