@@ -100,7 +100,7 @@ final class TrackersViewController: UIViewController {
     
     private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Трекеры"
+        titleLabel.text = NSLocalizedString("trackers.title", comment: "Заголовок экрана трекеров")
         titleLabel.font = UIFont(name: "SFPro-Bold", size: 34) ?? UIFont.boldSystemFont(ofSize: 34)
         titleLabel.textColor = UIColor(named: "BlackDay")
         view.addSubview(titleLabel)
@@ -173,7 +173,7 @@ final class TrackersViewController: UIViewController {
         searchContainerView.addSubview(searchIconView)
         
         searchTextField.translatesAutoresizingMaskIntoConstraints = false
-        searchTextField.placeholder = "Поиск"
+        searchTextField.placeholder = NSLocalizedString("search.placeholder", comment: "Поиск")
         searchTextField.backgroundColor = .clear
         searchTextField.borderStyle = .none
         searchTextField.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .regular)
@@ -205,7 +205,7 @@ final class TrackersViewController: UIViewController {
         emptyStateImageView.alpha = 1.0
         view.addSubview(emptyStateImageView)
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateLabel.text = "Что будем отслеживать?"
+        emptyStateLabel.text = NSLocalizedString("empty.trackers", comment: "Пустое состояние трекеров")
         emptyStateLabel.font = UIFont.systemFont(ofSize: 12)
         emptyStateLabel.textColor = UIColor(named: "BlackDay")
         emptyStateLabel.textAlignment = .center
@@ -319,25 +319,25 @@ final class TrackersViewController: UIViewController {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         
         // Кнопка "Закрепить"
-        let pinAction = UIAlertAction(title: "Закрепить", style: .default) { [weak self] _ in
+        let pinAction = UIAlertAction(title: NSLocalizedString("action.pin", comment: "Закрепить"), style: .default) { [weak self] _ in
             self?.pinTracker(tracker)
         }
         actionSheet.addAction(pinAction)
         
         // Кнопка "Редактировать"
-        let editAction = UIAlertAction(title: "Редактировать", style: .default) { [weak self] _ in
+        let editAction = UIAlertAction(title: NSLocalizedString("action.edit", comment: "Редактировать"), style: .default) { [weak self] _ in
             self?.editTracker(tracker)
         }
         actionSheet.addAction(editAction)
         
         // Кнопка "Удалить"
-        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        let deleteAction = UIAlertAction(title: NSLocalizedString("action.delete", comment: "Удалить"), style: .destructive) { [weak self] _ in
             self?.deleteTracker(tracker)
         }
         actionSheet.addAction(deleteAction)
         
         // Кнопка "Отмена"
-        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel)
+        let cancelAction = UIAlertAction(title: NSLocalizedString("action.cancel", comment: "Отмена"), style: .cancel)
         actionSheet.addAction(cancelAction)
         
         // Для iPad
@@ -364,13 +364,13 @@ final class TrackersViewController: UIViewController {
     
     private func deleteTracker(_ tracker: Tracker) {
         let alert = UIAlertController(
-            title: "Удалить привычку?",
-            message: "Это действие нельзя отменить.",
+            title: NSLocalizedString("tracker.delete.alert.title", comment: "Удалить привычку?"),
+            message: NSLocalizedString("tracker.delete.alert.message", comment: "Сообщение удаления трекера"),
             preferredStyle: .alert
         )
         
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: NSLocalizedString("action.cancel", comment: "Отмена"), style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("action.delete", comment: "Удалить"), style: .destructive) { [weak self] _ in
             self?.performDeleteTracker(tracker)
         })
         

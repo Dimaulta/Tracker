@@ -61,7 +61,7 @@ final class EditCategoryViewController: UIViewController {
     
     private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Редактирование категории"
+        titleLabel.text = NSLocalizedString("category.edit.title", comment: "Редактирование категории")
         titleLabel.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
@@ -128,7 +128,7 @@ final class EditCategoryViewController: UIViewController {
     
     private func setupDoneButton() {
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle(NSLocalizedString("button.done", comment: "Готово"), for: .normal)
         doneButton.setTitleColor(UIColor.white, for: .normal)
         doneButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         doneButton.backgroundColor = UIColor(named: "Gray")

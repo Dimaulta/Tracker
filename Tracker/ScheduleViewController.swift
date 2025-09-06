@@ -16,13 +16,13 @@ final class ScheduleViewController: UIViewController {
     
     // MARK: - Data
     private let daysOfWeek = [
-        "Понедельник",
-        "Вторник", 
-        "Среда",
-        "Четверг",
-        "Пятница",
-        "Суббота",
-        "Воскресенье"
+        NSLocalizedString("weekday.1", comment: "Понедельник"),
+        NSLocalizedString("weekday.2", comment: "Вторник"),
+        NSLocalizedString("weekday.3", comment: "Среда"),
+        NSLocalizedString("weekday.4", comment: "Четверг"),
+        NSLocalizedString("weekday.5", comment: "Пятница"),
+        NSLocalizedString("weekday.6", comment: "Суббота"),
+        NSLocalizedString("weekday.7", comment: "Воскресенье")
     ]
     
     private var selectedDays: Set<Int> = []
@@ -48,7 +48,7 @@ final class ScheduleViewController: UIViewController {
     
     private func setupHeader() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Расписание"
+        titleLabel.text = NSLocalizedString("schedule.title", comment: "Расписание")
         titleLabel.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
@@ -57,7 +57,7 @@ final class ScheduleViewController: UIViewController {
         paragraphStyle.lineHeightMultiple = 22.0 / 16.0
         paragraphStyle.alignment = .center
         let attributedString = NSAttributedString(
-            string: "Расписание",
+            string: NSLocalizedString("schedule.title", comment: "Расписание"),
             attributes: [
                 .paragraphStyle: paragraphStyle,
                 .font: titleLabel.font ?? UIFont.systemFont(ofSize: 16, weight: .medium),
@@ -106,7 +106,7 @@ final class ScheduleViewController: UIViewController {
     
     private func setupDoneButton() {
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle(NSLocalizedString("button.done", comment: "Готово"), for: .normal)
         doneButton.setTitleColor(UIColor.white, for: .normal)
         doneButton.titleLabel?.font = UIFont(name: "SFPro-Regular", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .regular)
         doneButton.backgroundColor = UIColor(red: 0.10, green: 0.11, blue: 0.13, alpha: 1.0)

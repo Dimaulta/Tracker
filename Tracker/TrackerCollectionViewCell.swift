@@ -161,8 +161,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             ]
         )
         
-        let dayText = getDayText(for: completedCount)
-        daysLabel.text = "\(completedCount) \(dayText)"
+        daysLabel.text = getDayText(for: completedCount)
         
         containerView.backgroundColor = UIColor(named: tracker.color) ?? UIColor(named: "Green")
         
@@ -182,8 +181,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             containerView.backgroundColor = UIColor(named: firstTracker.color) ?? UIColor(named: "Green")
         }
         
-        let dayText = getDayText(for: completedCount)
-        daysLabel.text = "\(completedCount) \(dayText)"
+        daysLabel.text = getDayText(for: completedCount)
         
         updateCompletionButton(isCompleted: isCompleted)
     }
@@ -217,20 +215,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     }
     
     private func getDayText(for count: Int) -> String {
-        let lastDigit = count % 10
-        let lastTwoDigits = count % 100
-        
-        if lastTwoDigits >= 11 && lastTwoDigits <= 19 {
-            return "дней"
-        }
-        
-        switch lastDigit {
-        case 1:
-            return "день"
-        case 2, 3, 4:
-            return "дня"
-        default:
-            return "дней"
-        }
+        let format = NSLocalizedString("days.count", comment: "N дней (плюрализация)")
+        return String.localizedStringWithFormat(format, count)
     }
 } 

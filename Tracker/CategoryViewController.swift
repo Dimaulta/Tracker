@@ -61,7 +61,7 @@ final class CategoryViewController: UIViewController {
     
     private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Категория"
+        titleLabel.text = NSLocalizedString("category.title", comment: "Категория")
         titleLabel.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
@@ -87,7 +87,7 @@ final class CategoryViewController: UIViewController {
     
     private func setupAddButton() {
         addCategoryButton.translatesAutoresizingMaskIntoConstraints = false
-        addCategoryButton.setTitle("Добавить категорию", for: .normal)
+        addCategoryButton.setTitle(NSLocalizedString("category.add.button", comment: "Добавить категорию"), for: .normal)
         addCategoryButton.setTitleColor(UIColor.white, for: .normal)
         addCategoryButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         addCategoryButton.backgroundColor = UIColor(named: "BlackDay")
@@ -118,7 +118,7 @@ final class CategoryViewController: UIViewController {
         view.addSubview(emptyStateImageView)
         
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateLabel.text = "Привычки и события можно\nобъединить по смыслу"
+        emptyStateLabel.text = NSLocalizedString("category.empty", comment: "Пустое состояние категорий")
         emptyStateLabel.font = UIFont(name: "SFPro-Regular", size: 12) ?? UIFont.systemFont(ofSize: 12)
         emptyStateLabel.textColor = UIColor(named: "BlackDay")
         emptyStateLabel.textAlignment = .center
@@ -296,13 +296,13 @@ extension CategoryViewController: CategoryContextMenuViewDelegate {
         hideContextMenu()
         
         let alert = UIAlertController(
-            title: "Удалить категорию?",
-            message: "Все трекеры в этой категории также будут удалены.",
+            title: NSLocalizedString("category.delete.alert.title", comment: "Удалить категорию?"),
+            message: NSLocalizedString("category.delete.alert.message", comment: "Сообщение удаления категории"),
             preferredStyle: .alert
         )
         
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: NSLocalizedString("action.cancel", comment: "Отмена"), style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("action.delete", comment: "Удалить"), style: .destructive) { [weak self] _ in
             self?.viewModel.deleteCategory(category)
         })
         

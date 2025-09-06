@@ -148,7 +148,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Редактирование привычки"
+        titleLabel.text = NSLocalizedString("habit.edit.title", comment: "Редактирование привычки")
         titleLabel.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
@@ -157,7 +157,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupNameTextField() {
         nameTextField.translatesAutoresizingMaskIntoConstraints = false
-        nameTextField.placeholder = "Введите название трекера"
+        nameTextField.placeholder = NSLocalizedString("habit.name.placeholder", comment: "Плейсхолдер имени трекера")
         nameTextField.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         nameTextField.textColor = UIColor(named: "BlackDay")
         nameTextField.backgroundColor = UIColor(named: "BackgroundDay")
@@ -186,7 +186,7 @@ final class EditTrackerViewController: UIViewController {
         contentView.addSubview(categoryContainerView)
         
         categoryLabel.translatesAutoresizingMaskIntoConstraints = false
-        categoryLabel.text = "Категория"
+        categoryLabel.text = NSLocalizedString("category.title", comment: "Категория")
         categoryLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         categoryLabel.textColor = UIColor(named: "BlackDay")
         categoryContainerView.addSubview(categoryLabel)
@@ -208,7 +208,7 @@ final class EditTrackerViewController: UIViewController {
         categoryContainerView.addSubview(dividerView)
         
         scheduleLabel.translatesAutoresizingMaskIntoConstraints = false
-        scheduleLabel.text = "Расписание"
+        scheduleLabel.text = NSLocalizedString("schedule.title", comment: "Расписание")
         scheduleLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         scheduleLabel.textColor = UIColor(named: "BlackDay")
         categoryContainerView.addSubview(scheduleLabel)
@@ -248,7 +248,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupButtons() {
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setTitle("Отменить", for: .normal)
+        cancelButton.setTitle(NSLocalizedString("button.cancel", comment: "Отменить"), for: .normal)
         cancelButton.setTitleColor(UIColor(named: "Red"), for: .normal)
         cancelButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         cancelButton.backgroundColor = UIColor(named: "WhiteDay")
@@ -259,7 +259,7 @@ final class EditTrackerViewController: UIViewController {
         view.addSubview(cancelButton)
         
         saveButton.translatesAutoresizingMaskIntoConstraints = false
-        saveButton.setTitle("Сохранить", for: .normal)
+        saveButton.setTitle(NSLocalizedString("button.save", comment: "Сохранить"), for: .normal)
         saveButton.setTitleColor(UIColor(named: "WhiteDay"), for: .normal)
         saveButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         saveButton.backgroundColor = UIColor(named: "BlackDay")
@@ -284,7 +284,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupCharacterLimitLabel() {
         characterLimitLabel.translatesAutoresizingMaskIntoConstraints = false
-        characterLimitLabel.text = "Ограничение 38 символов"
+        characterLimitLabel.text = NSLocalizedString("limit.38", comment: "Ограничение длины")
         characterLimitLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         characterLimitLabel.textColor = UIColor(named: "Red")
         characterLimitLabel.textAlignment = .center
@@ -478,11 +478,19 @@ final class EditTrackerViewController: UIViewController {
             return ""
         }
         
-        let daysOfWeek = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+        let daysOfWeek = [
+            NSLocalizedString("weekday.short.1", comment: "Пн"),
+            NSLocalizedString("weekday.short.2", comment: "Вт"),
+            NSLocalizedString("weekday.short.3", comment: "Ср"),
+            NSLocalizedString("weekday.short.4", comment: "Чт"),
+            NSLocalizedString("weekday.short.5", comment: "Пт"),
+            NSLocalizedString("weekday.short.6", comment: "Сб"),
+            NSLocalizedString("weekday.short.7", comment: "Вс")
+        ]
         let selectedDayNames = selectedDays.sorted().map { daysOfWeek[$0] }
         
         if selectedDays.count == 7 {
-            return "Каждый день"
+            return NSLocalizedString("schedule.everyday", comment: "Каждый день")
         } else {
             return selectedDayNames.joined(separator: ", ")
         }
