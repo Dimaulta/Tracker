@@ -20,6 +20,7 @@ final class TrackersViewController: UIViewController {
     private let emptyStateLabel = UILabel()
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private let categoryHeaderLabel = UILabel()
+    private let filtersButton = UIButton(type: .system)
     
     // MARK: - Data
     private var completedTrackerIds: Set<UUID> = []
@@ -27,6 +28,7 @@ final class TrackersViewController: UIViewController {
     
     private var viewModel: TrackerViewModelProtocol
     private let recordStore = TrackerRecordStore()
+    private var currentFilter: TrackerFilter = .today
     
     // MARK: - Context Menu
     private var currentTracker: Tracker?
@@ -90,6 +92,7 @@ final class TrackersViewController: UIViewController {
         setupSearchBar()
         setupDatePicker()
         setupCategoryHeader()
+        setupFiltersButton()
         setupCollectionView()
         setupEmptyState()
     }
@@ -230,6 +233,17 @@ final class TrackersViewController: UIViewController {
         createHabitViewController.modalPresentationStyle = .pageSheet
         present(createHabitViewController, animated: true)
     }
+
+    @objc private func filtersButtonTapped() {
+        let filtersVC = FiltersViewController()
+        filtersVC.modalPresentationStyle = .pageSheet
+        filtersVC.selectedFilter = currentFilter
+        filtersVC.onFilterSelected = { [weak self] filter in
+            self?.currentFilter = filter
+            // Логику применения фильтра к данным добавим на следующем шаге
+        }
+        present(filtersVC, animated: true)
+    }
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
@@ -258,7 +272,26 @@ final class TrackersViewController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: categoryHeaderLabel.bottomAnchor, constant: 6),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            collectionView.bottomAnchor.constraint(equalTo: filtersButton.topAnchor, constant: -16)
+        ])
+    }
+
+    private func setupFiltersButton() {
+        filtersButton.translatesAutoresizingMaskIntoConstraints = false
+        filtersButton.setTitle(NSLocalizedString("filters.title", comment: "Фильтры"), for: .normal)
+        filtersButton.setTitleColor(UIColor(named: "WhiteDay"), for: .normal)
+        filtersButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
+        filtersButton.backgroundColor = UIColor(named: "Blue")
+        filtersButton.layer.cornerRadius = 16
+        filtersButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 20, bottom: 14, right: 20)
+        filtersButton.addTarget(self, action: #selector(filtersButtonTapped), for: .touchUpInside)
+        view.addSubview(filtersButton)
+
+        NSLayoutConstraint.activate([
+            filtersButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 130),
+            filtersButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -130),
+            filtersButton.heightAnchor.constraint(equalToConstant: 50),
+            filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
     }
     

@@ -7,6 +7,11 @@
 "trackers.title" = "Трекеры";
 "search.placeholder" = "Поиск";
 "empty.trackers" = "Что будем отслеживать?";
+"filters.title" = "Фильтры";
+"filters.all" = "Все трекеры";
+"filters.today" = "Трекеры на сегодня";
+"filters.completed" = "Завершенные";
+"filters.incomplete" = "Не завершенные";
 
 /* Habit create/edit */
 "habit.new.title" = "Новая привычка";
