@@ -29,6 +29,8 @@ final class TrackersViewController: UIViewController {
     private var viewModel: TrackerViewModelProtocol
     private let recordStore = TrackerRecordStore()
     private var currentFilter: TrackerFilter = .today
+    private var searchText: String = ""
+    private var visibleCategories: [TrackerCategory] = []
     
     // MARK: - Context Menu
     private var currentTracker: Tracker?
@@ -43,19 +45,7 @@ final class TrackersViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Computed Properties
-    private var visibleCategories: [TrackerCategory] {
-        let result = viewModel.categories.map { category in
-            let filteredTrackers = category.trackers.filter { tracker in
-                let isScheduled = tracker.isScheduled(for: currentDate)
-                return isScheduled
-            }
-            return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
-        
-        return result
-    }
-    
+    // MARK: - Helpers
     private var visibleTrackers: [Tracker] {
         var allTrackers: [Tracker] = []
         for category in viewModel.categories {
@@ -78,6 +68,7 @@ final class TrackersViewController: UIViewController {
         setupUI()
         setupBindings()
         viewModel.loadData()
+        applyFiltersAndSearch()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -181,6 +172,9 @@ final class TrackersViewController: UIViewController {
         searchTextField.borderStyle = .none
         searchTextField.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .regular)
         searchTextField.textColor = UIColor(named: "Gray")
+        searchTextField.autocorrectionType = .no
+        searchTextField.clearButtonMode = .whileEditing
+        searchTextField.addTarget(self, action: #selector(searchTextChanged), for: .editingChanged)
         searchContainerView.addSubview(searchTextField)
         
         NSLayoutConstraint.activate([
@@ -209,7 +203,7 @@ final class TrackersViewController: UIViewController {
         view.addSubview(emptyStateImageView)
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
         emptyStateLabel.text = NSLocalizedString("empty.trackers", comment: "Пустое состояние трекеров")
-        emptyStateLabel.font = UIFont.systemFont(ofSize: 12)
+        emptyStateLabel.font = UIFont(name: "SFPro-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
         emptyStateLabel.textColor = UIColor(named: "BlackDay")
         emptyStateLabel.textAlignment = .center
         view.addSubview(emptyStateLabel)
@@ -240,14 +234,15 @@ final class TrackersViewController: UIViewController {
         filtersVC.selectedFilter = currentFilter
         filtersVC.onFilterSelected = { [weak self] filter in
             self?.currentFilter = filter
-            // Логику применения фильтра к данным добавим на следующем шаге
+            self?.applyFiltersAndSearch()
+            self?.dismiss(animated: true)
         }
         present(filtersVC, animated: true)
     }
     
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
-        updateUI()
+        applyFiltersAndSearch()
     }
     
     private func setupCollectionView() {
@@ -299,7 +294,7 @@ final class TrackersViewController: UIViewController {
     private func setupBindings() {
         viewModel.onCategoriesUpdate = { [weak self] in
             DispatchQueue.main.async {
-                self?.updateUI()
+                self?.applyFiltersAndSearch()
             }
         }
     }
@@ -326,6 +321,15 @@ final class TrackersViewController: UIViewController {
         
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
+        if isEmpty {
+            if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                emptyStateImageView.image = UIImage(named: "searchnone")
+                emptyStateLabel.text = NSLocalizedString("search.empty", comment: "Ничего не найдено")
+            } else {
+                emptyStateImageView.image = UIImage(named: "Dizzy")
+                emptyStateLabel.text = NSLocalizedString("empty.trackers", comment: "Пустое состояние трекеров")
+            }
+        }
         collectionView.isHidden = isEmpty
         categoryHeaderLabel.isHidden = true
     }
@@ -499,3 +503,60 @@ extension TrackersViewController: EditTrackerViewControllerDelegate {
         updateTracker(tracker, newName: newName, newEmoji: newEmoji, newColor: newColor, newSchedule: newSchedule, newCategory: newCategory)
     }
 } 
+
+// MARK: - Search & Filter Logic
+extension TrackersViewController {
+    @objc private func searchTextChanged() {
+        searchText = searchTextField.text ?? ""
+        applyFiltersAndSearch()
+    }
+    
+    private func applyFiltersAndSearch() {
+        // 1) Базовая выборка: если есть запрос — берём все трекеры без учёта расписания,
+        // иначе показываем только трекеры на выбранный день
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        var categories: [TrackerCategory]
+        if query.isEmpty {
+            categories = viewModel.categories.map { category in
+                let trackers = category.trackers.filter { $0.isScheduled(for: currentDate) }
+                return TrackerCategory(title: category.title, trackers: trackers)
+            }.filter { !$0.trackers.isEmpty }
+        } else {
+            categories = viewModel.categories // без фильтра по дню для поиска
+        }
+        
+        // 2) Поиск по названию (если есть запрос)
+        if !query.isEmpty {
+            categories = categories.compactMap { category in
+                let filtered = category.trackers.filter { $0.name.lowercased().contains(query) }
+                return filtered.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filtered)
+            }
+        }
+        
+        // 3) Применяем выбранный фильтр
+        switch currentFilter {
+        case .all:
+            break
+        case .today:
+            categories = categories.map { category in
+                let trackers = category.trackers.filter { $0.isScheduled(for: currentDate) }
+                return TrackerCategory(title: category.title, trackers: trackers)
+            }.filter { !$0.trackers.isEmpty }
+        case .completed:
+            categories = categories.map { category in
+                let trackers = category.trackers.filter { recordStore.isTrackerCompleted(trackerId: $0.id, date: currentDate) }
+                return TrackerCategory(title: category.title, trackers: trackers)
+            }.filter { !$0.trackers.isEmpty }
+        case .incomplete:
+            categories = categories.map { category in
+                let trackers = category.trackers.filter {
+                    $0.isScheduled(for: currentDate) && !recordStore.isTrackerCompleted(trackerId: $0.id, date: currentDate)
+                }
+                return TrackerCategory(title: category.title, trackers: trackers)
+            }.filter { !$0.trackers.isEmpty }
+        }
+        
+        visibleCategories = categories
+        updateUI()
+    }
+}
