@@ -31,7 +31,7 @@ final class FiltersViewController: UIViewController {
     private let tableView = UITableView()
     
     // MARK: - State
-    var selectedFilter: TrackerFilter = .today
+    var selectedFilter: TrackerFilter = .all
     var onFilterSelected: ((TrackerFilter) -> Void)?
     
     override func viewDidLoad() {
@@ -89,7 +89,12 @@ extension FiltersViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FilterTableViewCell.identifier, for: indexPath) as! FilterTableViewCell
         let filter = TrackerFilter.allCases[indexPath.row]
-        let isSelected = filter == selectedFilter
+        
+        var isSelected = false
+        if filter == .completed || filter == .incomplete {
+            isSelected = filter == selectedFilter
+        }
+        
         let isFirst = indexPath.row == 0
         let isLast = indexPath.row == TrackerFilter.allCases.count - 1
         cell.configure(title: filter.title, isSelected: isSelected, isFirst: isFirst, isLast: isLast)

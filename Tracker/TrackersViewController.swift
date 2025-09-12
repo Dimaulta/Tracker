@@ -28,7 +28,7 @@ final class TrackersViewController: UIViewController {
     
     private var viewModel: TrackerViewModelProtocol
     private let recordStore = TrackerRecordStore()
-    private var currentFilter: TrackerFilter = .today
+    private var currentFilter: TrackerFilter = .all
     private var searchText: String = ""
     private var visibleCategories: [TrackerCategory] = []
     
@@ -60,6 +60,12 @@ final class TrackersViewController: UIViewController {
     
     private func isTrackerCompleted(for tracker: Tracker) -> Bool {
         return recordStore.isTrackerCompleted(trackerId: tracker.id, date: currentDate)
+    }
+    
+    private func hasTrackersForDate(_ date: Date) -> Bool {
+        return viewModel.categories.contains { category in
+            category.trackers.contains { $0.isScheduled(for: date) }
+        }
     }
     
     override func viewDidLoad() {
@@ -233,9 +239,15 @@ final class TrackersViewController: UIViewController {
         filtersVC.modalPresentationStyle = .pageSheet
         filtersVC.selectedFilter = currentFilter
         filtersVC.onFilterSelected = { [weak self] filter in
-            self?.currentFilter = filter
-            self?.applyFiltersAndSearch()
-            self?.dismiss(animated: true)
+            guard let self = self else { return }
+            self.currentFilter = filter
+            if filter == .today {
+                let today = Date()
+                self.currentDate = today
+                self.datePicker.setDate(today, animated: true)
+            }
+            self.applyFiltersAndSearch()
+            self.dismiss(animated: true)
         }
         present(filtersVC, animated: true)
     }
@@ -318,6 +330,10 @@ final class TrackersViewController: UIViewController {
         collectionView.collectionViewLayout.invalidateLayout()
         
         let isEmpty = visibleCategories.isEmpty
+        let hasTrackersForCurrentDate = hasTrackersForDate(currentDate)
+        
+        // Скрываем кнопку фильтрации если нет трекеров на выбранный день
+        filtersButton.isHidden = !hasTrackersForCurrentDate
         
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
@@ -325,6 +341,10 @@ final class TrackersViewController: UIViewController {
             if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 emptyStateImageView.image = UIImage(named: "searchnone")
                 emptyStateLabel.text = NSLocalizedString("search.empty", comment: "Ничего не найдено")
+            } else if currentFilter != .all {
+                // Показываем заглушку для фильтров
+                emptyStateImageView.image = UIImage(named: "searchnone")
+                emptyStateLabel.text = NSLocalizedString("filters.empty", comment: "Ничего не найдено")
             } else {
                 emptyStateImageView.image = UIImage(named: "Dizzy")
                 emptyStateLabel.text = NSLocalizedString("empty.trackers", comment: "Пустое состояние трекеров")
