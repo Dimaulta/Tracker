@@ -68,7 +68,12 @@
 "tracker.delete.alert.title" = "Удалить привычку?";
 "tracker.delete.alert.message" = "Это действие нельзя отменить.";
 
+/* Tab Bar */
+"tab.trackers" = "Трекеры";
+"tab.statistics" = "Статистика";
+
 /* Misc */
 "limit.38" = "Ограничение 38 символов";
+"days.count" = "%d дней";
 
 

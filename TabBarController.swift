@@ -21,7 +21,7 @@ class TabBarController: UITabBarController {
         let trackersViewController = TrackersViewController()
         let trackersNavigationController = UINavigationController(rootViewController: trackersViewController)
         trackersNavigationController.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: NSLocalizedString("tab.trackers", comment: "Trackers tab"),
             image: UIImage(named: "TabBarActive"),
             selectedImage: UIImage(named: "TabBarActive")
         )
@@ -29,7 +29,7 @@ class TabBarController: UITabBarController {
         let statisticsViewController = StatisticsViewController()
         let statisticsNavigationController = UINavigationController(rootViewController: statisticsViewController)
         statisticsNavigationController.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: NSLocalizedString("tab.statistics", comment: "Statistics tab"),
             image: UIImage(named: "TabBarStat"),
             selectedImage: UIImage(named: "TabBarStat")
         )
@@ -63,7 +63,7 @@ class StatisticsViewController: UIViewController {
         view.backgroundColor = UIColor.white
         
         let label = UILabel()
-        label.text = "Статистика"
+        label.text = NSLocalizedString("tab.statistics", comment: "Statistics tab")
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(label)
