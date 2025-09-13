@@ -36,14 +36,14 @@ class TabBarController: UITabBarController {
         
         viewControllers = [trackersNavigationController, statisticsNavigationController]
         
-        tabBar.backgroundColor = UIColor.white
+        tabBar.backgroundColor = UIColor(named: "WhiteDay")
         tabBar.tintColor = UIColor(named: "Blue")
         tabBar.unselectedItemTintColor = UIColor(named: "Gray")
     }
     
     private func setupTopBorder() {
         topBorderView.translatesAutoresizingMaskIntoConstraints = false
-        topBorderView.backgroundColor = UIColor(named: "Gray")
+        topBorderView.backgroundColor = UIColor(named: "Tabbarline")
         view.addSubview(topBorderView)
         
         NSLayoutConstraint.activate([

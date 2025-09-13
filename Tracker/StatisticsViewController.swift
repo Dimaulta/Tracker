@@ -33,7 +33,7 @@ final class StatisticsViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = UIColor.white
+        view.backgroundColor = UIColor(named: "WhiteDay")
         
         setupScrollView()
         setupTitle()

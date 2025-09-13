@@ -51,7 +51,7 @@ final class CategoryViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = UIColor.white
+        view.backgroundColor = UIColor(named: "WhiteDay")
         
         setupTitle()
         setupTableView()
@@ -88,7 +88,7 @@ final class CategoryViewController: UIViewController {
     private func setupAddButton() {
         addCategoryButton.translatesAutoresizingMaskIntoConstraints = false
         addCategoryButton.setTitle(NSLocalizedString("category.add.button", comment: "Добавить категорию"), for: .normal)
-        addCategoryButton.setTitleColor(UIColor.white, for: .normal)
+        addCategoryButton.setTitleColor(UIColor(named: "WhiteNight"), for: .normal)
         addCategoryButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         addCategoryButton.backgroundColor = UIColor(named: "BlackDay")
         addCategoryButton.layer.cornerRadius = 16

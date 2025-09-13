@@ -115,7 +115,7 @@ final class TrackersViewController: UIViewController {
     private func setupAddButton() {
         addButton.translatesAutoresizingMaskIntoConstraints = false
         addButton.setImage(UIImage(named: "Add tracker"), for: .normal)
-        addButton.tintColor = UIColor.black
+        addButton.tintColor = UIColor(named: "BlackDay")
         addButton.backgroundColor = UIColor.clear
         addButton.alpha = 1.0
         addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
@@ -286,7 +286,7 @@ final class TrackersViewController: UIViewController {
     private func setupFiltersButton() {
         filtersButton.translatesAutoresizingMaskIntoConstraints = false
         filtersButton.setTitle(NSLocalizedString("filters.title", comment: "Фильтры"), for: .normal)
-        filtersButton.setTitleColor(UIColor(named: "WhiteDay"), for: .normal)
+        filtersButton.setTitleColor(UIColor.white, for: .normal)
         filtersButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         filtersButton.backgroundColor = UIColor(named: "Blue")
         filtersButton.layer.cornerRadius = 16

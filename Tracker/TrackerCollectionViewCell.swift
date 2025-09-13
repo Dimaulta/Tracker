@@ -202,7 +202,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
 
             completionButton.setImage(nil, for: .normal)
             completionButton.setTitle("+", for: .normal)
-            completionButton.setTitleColor(UIColor.white, for: .normal)
+            completionButton.setTitleColor(UIColor(named: "WhiteNight"), for: .normal)
             completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .light) 
             completionButton.backgroundColor = cellColor 
             completionButton.alpha = 1.0

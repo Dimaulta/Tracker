@@ -52,7 +52,7 @@ final class EditCategoryViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = UIColor.white
+        view.backgroundColor = UIColor(named: "WhiteDay")
         
         setupTitle()
         setupCategoryTextField()
@@ -79,7 +79,7 @@ final class EditCategoryViewController: UIViewController {
         categoryTextField.text = category.title
         categoryTextField.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         categoryTextField.textColor = UIColor(named: "BlackDay")
-        categoryTextField.backgroundColor = UIColor(red: 0.90, green: 0.91, blue: 0.92, alpha: 0.30)
+        categoryTextField.backgroundColor = UIColor(named: "BackgroundDay")
         categoryTextField.layer.cornerRadius = 16
         categoryTextField.borderStyle = .none
         categoryTextField.delegate = self
