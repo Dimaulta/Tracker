@@ -72,6 +72,14 @@
 "tab.trackers" = "Trackers";
 "tab.statistics" = "Statistics";
 
+/* Statistics */
+"statistics.title" = "Statistics";
+"statistics.empty" = "Nothing to analyze yet";
+"statistics.best.period" = "Best period";
+"statistics.ideal.days" = "Ideal days";
+"statistics.completed.trackers" = "Trackers completed";
+"statistics.average.value" = "Average value";
+
 /* Misc */
 "limit.38" = "38 character limit";
 "days.count" = "%d day";

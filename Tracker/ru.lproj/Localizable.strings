@@ -72,6 +72,14 @@
 "tab.trackers" = "Трекеры";
 "tab.statistics" = "Статистика";
 
+/* Statistics */
+"statistics.title" = "Статистика";
+"statistics.empty" = "Анализировать пока нечего";
+"statistics.best.period" = "Лучший период";
+"statistics.ideal.days" = "Идеальные дни";
+"statistics.completed.trackers" = "Трекеров завершено";
+"statistics.average.value" = "Среднее значение";
+
 /* Misc */
 "limit.38" = "Ограничение 38 символов";
 "days.count" = "%d день";
