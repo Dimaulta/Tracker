@@ -303,6 +303,7 @@ extension CategoryViewController: CategoryContextMenuViewDelegate {
         
         alert.addAction(UIAlertAction(title: NSLocalizedString("action.cancel", comment: "Отмена"), style: .cancel))
         alert.addAction(UIAlertAction(title: NSLocalizedString("action.delete", comment: "Удалить"), style: .destructive) { [weak self] _ in
+            AnalyticsManager.shared.trackCategoryDeleted(categoryName: category.title)
             self?.viewModel.deleteCategory(category)
         })
         
@@ -313,6 +314,7 @@ extension CategoryViewController: CategoryContextMenuViewDelegate {
 // MARK: - EditCategoryViewControllerDelegate
 extension CategoryViewController: EditCategoryViewControllerDelegate {
     func didUpdateCategory(_ category: TrackerCategory, newTitle: String) {
+        AnalyticsManager.shared.trackCategoryEdited(oldName: category.title, newName: newTitle)
         viewModel.updateCategoryTitle(category, newTitle: newTitle)
     }
 }

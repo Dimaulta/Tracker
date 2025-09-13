@@ -39,6 +39,24 @@ extension TrackerCoreData {
         coreDataTracker.schedule = tracker.schedule as NSArray
         return coreDataTracker
     }
+    
+    func isScheduled(for date: Date) -> Bool {
+        let scheduleArray: [Int]
+        if let ints = self.schedule as? [Int] {
+            scheduleArray = ints
+        } else if let nums = self.schedule as? [NSNumber] {
+            scheduleArray = nums.map { $0.intValue }
+        } else if let nsArray = self.schedule as? NSArray {
+            scheduleArray = nsArray.compactMap { ($0 as? NSNumber)?.intValue }
+        } else {
+            scheduleArray = []
+        }
+        
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        let adjustedWeekday = (weekday + 5) % 7
+        return scheduleArray.contains(adjustedWeekday)
+    }
 }
 
 // MARK: - TrackerCategoryCoreData Extensions

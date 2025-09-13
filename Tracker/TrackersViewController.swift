@@ -228,6 +228,8 @@ final class TrackersViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func addButtonTapped() {
+        AnalyticsManager.shared.trackButtonTapped(buttonName: "add_tracker", screenName: "trackers")
+        
         let createHabitViewController = CreateHabitViewController()
         createHabitViewController.delegate = self
         createHabitViewController.modalPresentationStyle = .pageSheet
@@ -235,6 +237,8 @@ final class TrackersViewController: UIViewController {
     }
 
     @objc private func filtersButtonTapped() {
+        AnalyticsManager.shared.trackButtonTapped(buttonName: "filters", screenName: "trackers")
+        
         let filtersVC = FiltersViewController()
         filtersVC.modalPresentationStyle = .pageSheet
         filtersVC.selectedFilter = currentFilter
@@ -365,7 +369,16 @@ final class TrackersViewController: UIViewController {
             return
         }
         
+        let wasCompleted = isTrackerCompleted(for: tracker)
         recordStore.toggleTrackerCompletion(trackerId: tracker.id, date: currentDate)
+        
+        // Отправляем аналитику
+        if wasCompleted {
+            AnalyticsManager.shared.trackTrackerUncompleted(trackerId: tracker.id, trackerName: tracker.name)
+        } else {
+            AnalyticsManager.shared.trackTrackerCompleted(trackerId: tracker.id, trackerName: tracker.name)
+        }
+        
         updateUI()
     }
     
@@ -512,6 +525,11 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 // MARK: - CreateHabitViewControllerDelegate
 extension TrackersViewController: CreateHabitViewControllerDelegate {
     func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) {
+        AnalyticsManager.shared.trackTrackerCreated(
+            name: tracker.name,
+            category: category.title,
+            schedule: tracker.schedule
+        )
         addTracker(tracker, category: category)
     }
 }
@@ -520,6 +538,7 @@ extension TrackersViewController: CreateHabitViewControllerDelegate {
 // MARK: - EditTrackerViewControllerDelegate
 extension TrackersViewController: EditTrackerViewControllerDelegate {
     func didUpdateTracker(_ tracker: Tracker, newName: String, newEmoji: String, newColor: String, newSchedule: [Int], newCategory: TrackerCategory?) {
+        AnalyticsManager.shared.trackTrackerEdited(trackerId: tracker.id, trackerName: newName)
         updateTracker(tracker, newName: newName, newEmoji: newEmoji, newColor: newColor, newSchedule: newSchedule, newCategory: newCategory)
     }
 } 

@@ -23,12 +23,20 @@ final class StatisticsViewController: UIViewController {
     private let averageValueCard = StatisticsCard()
     
     // MARK: - Properties
-    private var hasStatistics = false // Пока заглушка, потом будет логика
+    private let statisticsManager: StatisticsManagerProtocol = StatisticsManager()
+    private var hasStatistics = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        updateUI()
+        loadStatistics()
+        
+        AnalyticsManager.shared.trackStatisticsViewed()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadStatistics()
     }
     
     // MARK: - Setup
@@ -126,11 +134,7 @@ final class StatisticsViewController: UIViewController {
             contentView.addSubview(card)
         }
         
-        // Конфигурация карточек
-        bestPeriodCard.configure(value: "6", title: NSLocalizedString("statistics.best.period", comment: "Лучший период"))
-        idealDaysCard.configure(value: "2", title: NSLocalizedString("statistics.ideal.days", comment: "Идеальные дни"))
-        completedTrackersCard.configure(value: "5", title: NSLocalizedString("statistics.completed.trackers", comment: "Трекеров завершено"))
-        averageValueCard.configure(value: "4", title: NSLocalizedString("statistics.average.value", comment: "Среднее значение"))
+        // Конфигурация карточек будет выполнена в loadStatistics()
         
         NSLayoutConstraint.activate([
             bestPeriodCard.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 77),
@@ -156,6 +160,39 @@ final class StatisticsViewController: UIViewController {
         ])
     }
     
+    // MARK: - Statistics Loading
+    private func loadStatistics() {
+        let statistics = statisticsManager.calculateStatistics()
+        
+        // Проверяем, есть ли данные для отображения
+        hasStatistics = statistics.completedTrackers > 0
+        
+        if hasStatistics {
+            // Обновляем карточки с реальными данными и градиентными рамками
+            bestPeriodCard.configure(
+                value: "\(statistics.bestPeriod)",
+                title: NSLocalizedString("statistics.best.period", comment: "Лучший период")
+            )
+            
+            idealDaysCard.configure(
+                value: "\(statistics.idealDays)",
+                title: NSLocalizedString("statistics.ideal.days", comment: "Идеальные дни")
+            )
+            
+            completedTrackersCard.configure(
+                value: "\(statistics.completedTrackers)",
+                title: NSLocalizedString("statistics.completed.trackers", comment: "Трекеров завершено")
+            )
+            
+            averageValueCard.configure(
+                value: String(format: "%.1f", statistics.averageValue),
+                title: NSLocalizedString("statistics.average.value", comment: "Среднее значение")
+            )
+        }
+        
+        updateUI()
+    }
+    
     // MARK: - UI Updates
     private func updateUI() {
         let showEmptyState = !hasStatistics
@@ -164,7 +201,6 @@ final class StatisticsViewController: UIViewController {
         emptyStateLabel.isHidden = !showEmptyState
         
         bestPeriodCard.isHidden = showEmptyState
-        idealDaysCard.isHidden = showEmptyState
         idealDaysCard.isHidden = showEmptyState
         completedTrackersCard.isHidden = showEmptyState
         averageValueCard.isHidden = showEmptyState
@@ -189,7 +225,7 @@ final class StatisticsCard: UIView {
     }
     
     private func setupUI() {
-        backgroundColor = UIColor.white
+        backgroundColor = UIColor(named: "WhiteNight")
         layer.cornerRadius = 16
         
         // Градиентная рамка
@@ -232,37 +268,75 @@ final class StatisticsCard: UIView {
         valueLabel.text = value
         titleLabel.text = title
         
-        // Настройка градиентной рамки
-        setupGradientBorder()
+        // Настройка градиентной рамки (отложенно, чтобы bounds были установлены)
+        DispatchQueue.main.async { [weak self] in
+            self?.setupBorder(color: "")
+        }
     }
     
-    private func setupGradientBorder() {
-        // Создаем градиент из цветов color1 -> color5 -> color3
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = bounds
-        gradientLayer.colors = [
-            UIColor(named: "Color1")?.cgColor ?? UIColor.red.cgColor,
-            UIColor(named: "Color5")?.cgColor ?? UIColor.green.cgColor,
-            UIColor(named: "Color3")?.cgColor ?? UIColor.blue.cgColor
+    private func setupBorder(color: String) {
+        // Проверяем, что bounds установлены
+        guard bounds.width > 0 && bounds.height > 0 else { return }
+        
+        // Удаляем предыдущие слои
+        gradientBorderView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        
+        // Проверяем, что цвета загружаются правильно
+        let color1 = UIColor(named: "Color1") ?? UIColor.red
+        let color5 = UIColor(named: "Color5") ?? UIColor.green
+        let color3 = UIColor(named: "Color3") ?? UIColor.blue
+        
+        print("DEBUG: Color1 = \(color1), Color5 = \(color5), Color3 = \(color3)")
+        
+        // Альтернативный подход - используем border вместо маски
+        gradientBorderView.layer.borderWidth = 1
+        gradientBorderView.layer.borderColor = UIColor.clear.cgColor
+        gradientBorderView.layer.cornerRadius = 16
+        
+        // Создаем градиентную рамку через border
+        let borderLayer = CAGradientLayer()
+        borderLayer.frame = bounds
+        borderLayer.colors = [
+            color1.cgColor,
+            color5.cgColor,
+            color3.cgColor
         ]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        gradientLayer.cornerRadius = 16
+        borderLayer.startPoint = CGPoint(x: 0, y: 0)
+        borderLayer.endPoint = CGPoint(x: 1, y: 0)
+        borderLayer.cornerRadius = 16
         
         // Создаем маску для рамки
         let maskLayer = CAShapeLayer()
         maskLayer.fillRule = .evenOdd
-        maskLayer.path = UIBezierPath(roundedRect: bounds, cornerRadius: 16).cgPath
         
-        gradientBorderView.layer.addSublayer(gradientLayer)
-        gradientBorderView.layer.mask = maskLayer
+        let outerPath = UIBezierPath(roundedRect: bounds, cornerRadius: 16)
+        let innerPath = UIBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), cornerRadius: 15)
+        outerPath.append(innerPath)
+        
+        maskLayer.path = outerPath.cgPath
+        borderLayer.mask = maskLayer
+        
+        gradientBorderView.layer.addSublayer(borderLayer)
+        
+        // Добавляем отладочную информацию
+        print("DEBUG: Gradient frame = \(borderLayer.frame)")
+        print("DEBUG: Gradient colors count = \(borderLayer.colors?.count ?? 0)")
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
         // Обновляем градиент при изменении размера
-        if let gradientLayer = gradientBorderView.layer.sublayers?.first as? CAGradientLayer {
-            gradientLayer.frame = bounds
+        if let borderLayer = gradientBorderView.layer.sublayers?.first as? CAGradientLayer {
+            borderLayer.frame = bounds
+            borderLayer.cornerRadius = 16
+            
+            // Обновляем маску
+            if let maskLayer = borderLayer.mask as? CAShapeLayer {
+                let outerPath = UIBezierPath(roundedRect: bounds, cornerRadius: 16)
+                let innerPath = UIBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), cornerRadius: 15)
+                outerPath.append(innerPath)
+                maskLayer.path = outerPath.cgPath
+            }
         }
     }
 }

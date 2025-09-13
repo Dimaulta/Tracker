@@ -111,6 +111,8 @@ extension FiltersViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         selectedFilter = TrackerFilter.allCases[indexPath.row]
         tableView.reloadData()
+        
+        AnalyticsManager.shared.trackFiltersUsed(filterType: selectedFilter.title)
         onFilterSelected?(selectedFilter)
         dismiss(animated: true)
     }
