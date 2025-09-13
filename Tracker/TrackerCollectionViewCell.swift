@@ -22,6 +22,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private var tracker: Tracker?
     private var selectedDate: Date = Date()
     var onCompletionToggled: ((Tracker) -> Void)?
+    var onLongPress: ((Tracker) -> Void)?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -34,7 +35,12 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     
     private func setupUI() {
         contentView.backgroundColor = UIColor.clear
-        contentView.isUserInteractionEnabled = true 
+        contentView.isUserInteractionEnabled = true
+        
+        // Добавляем длинное нажатие для контекстного меню
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        contentView.addGestureRecognizer(longPressGesture) 
         
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -123,7 +129,17 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         guard let tracker = tracker else { 
             return 
         }
+
+        AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "track")
+        
         onCompletionToggled?(tracker)
+    }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            guard let tracker = tracker else { return }
+            onLongPress?(tracker)
+        }
     }
     
     func configure(with tracker: Tracker, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
@@ -148,8 +164,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             ]
         )
         
-        let dayText = getDayText(for: completedCount)
-        daysLabel.text = "\(completedCount) \(dayText)"
+        daysLabel.text = getDayText(for: completedCount)
         
         containerView.backgroundColor = UIColor(named: tracker.color) ?? UIColor(named: "Green")
         
@@ -169,8 +184,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             containerView.backgroundColor = UIColor(named: firstTracker.color) ?? UIColor(named: "Green")
         }
         
-        let dayText = getDayText(for: completedCount)
-        daysLabel.text = "\(completedCount) \(dayText)"
+        daysLabel.text = getDayText(for: completedCount)
         
         updateCompletionButton(isCompleted: isCompleted)
     }
@@ -191,7 +205,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
 
             completionButton.setImage(nil, for: .normal)
             completionButton.setTitle("+", for: .normal)
-            completionButton.setTitleColor(UIColor.white, for: .normal)
+            completionButton.setTitleColor(UIColor(named: "WhiteNight"), for: .normal)
             completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .light) 
             completionButton.backgroundColor = cellColor 
             completionButton.alpha = 1.0
@@ -204,20 +218,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     }
     
     private func getDayText(for count: Int) -> String {
-        let lastDigit = count % 10
-        let lastTwoDigits = count % 100
-        
-        if lastTwoDigits >= 11 && lastTwoDigits <= 19 {
-            return "дней"
-        }
-        
-        switch lastDigit {
-        case 1:
-            return "день"
-        case 2, 3, 4:
-            return "дня"
-        default:
-            return "дней"
-        }
+        let format = NSLocalizedString("days.count", comment: "N дней (плюрализация)")
+        return String.localizedStringWithFormat(format, count)
     }
 } 
