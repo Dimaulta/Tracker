@@ -77,8 +77,21 @@ final class TrackersViewController: UIViewController {
         applyFiltersAndSearch()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        AnalyticsManager.shared.trackScreenOpen(screen: "Main")
+        
+        #if DEBUG
+       
+        AnalyticsManager.shared.checkAnalyticsStatus()
+        AnalyticsManager.shared.testAnalytics()
+        #endif
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        AnalyticsManager.shared.trackScreenClose(screen: "Main")
     }
     
     private func setupUI() {
@@ -228,7 +241,7 @@ final class TrackersViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func addButtonTapped() {
-        AnalyticsManager.shared.trackButtonTapped(buttonName: "add_tracker", screenName: "trackers")
+        AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "add_track")
         
         let createHabitViewController = CreateHabitViewController()
         createHabitViewController.delegate = self
@@ -237,7 +250,7 @@ final class TrackersViewController: UIViewController {
     }
 
     @objc private func filtersButtonTapped() {
-        AnalyticsManager.shared.trackButtonTapped(buttonName: "filters", screenName: "trackers")
+        AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "filter")
         
         let filtersVC = FiltersViewController()
         filtersVC.modalPresentationStyle = .pageSheet
@@ -336,7 +349,6 @@ final class TrackersViewController: UIViewController {
         let isEmpty = visibleCategories.isEmpty
         let hasTrackersForCurrentDate = hasTrackersForDate(currentDate)
         
-        // Скрываем кнопку фильтрации если нет трекеров на выбранный день
         filtersButton.isHidden = !hasTrackersForCurrentDate
         
         emptyStateImageView.isHidden = !isEmpty
@@ -346,7 +358,6 @@ final class TrackersViewController: UIViewController {
                 emptyStateImageView.image = UIImage(named: "searchnone")
                 emptyStateLabel.text = NSLocalizedString("search.empty", comment: "Ничего не найдено")
             } else if currentFilter != .all {
-                // Показываем заглушку для фильтров
                 emptyStateImageView.image = UIImage(named: "searchnone")
                 emptyStateLabel.text = NSLocalizedString("filters.empty", comment: "Ничего не найдено")
             } else {
@@ -372,7 +383,6 @@ final class TrackersViewController: UIViewController {
         let wasCompleted = isTrackerCompleted(for: tracker)
         recordStore.toggleTrackerCompletion(trackerId: tracker.id, date: currentDate)
         
-        // Отправляем аналитику
         if wasCompleted {
             AnalyticsManager.shared.trackTrackerUncompleted(trackerId: tracker.id, trackerName: tracker.name)
         } else {
@@ -426,6 +436,9 @@ final class TrackersViewController: UIViewController {
     }
     
     private func editTracker(_ tracker: Tracker) {
+        // Отправляем аналитику согласно требованиям AppMetrica
+        AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "edit")
+        
         let editTrackerVC = EditTrackerViewController(tracker: tracker)
         editTrackerVC.delegate = self
         editTrackerVC.modalPresentationStyle = .pageSheet
@@ -433,6 +446,9 @@ final class TrackersViewController: UIViewController {
     }
     
     private func deleteTracker(_ tracker: Tracker) {
+        // Отправляем аналитику согласно требованиям AppMetrica
+        AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "delete")
+        
         let alert = UIAlertController(
             title: NSLocalizedString("tracker.delete.alert.title", comment: "Удалить привычку?"),
             message: NSLocalizedString("tracker.delete.alert.message", comment: "Сообщение удаления трекера"),
@@ -551,8 +567,7 @@ extension TrackersViewController {
     }
     
     private func applyFiltersAndSearch() {
-        // 1) Базовая выборка: если есть запрос — берём все трекеры без учёта расписания,
-        // иначе показываем только трекеры на выбранный день
+
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         var categories: [TrackerCategory]
         if query.isEmpty {
@@ -561,10 +576,9 @@ extension TrackersViewController {
                 return TrackerCategory(title: category.title, trackers: trackers)
             }.filter { !$0.trackers.isEmpty }
         } else {
-            categories = viewModel.categories // без фильтра по дню для поиска
+            categories = viewModel.categories
         }
         
-        // 2) Поиск по названию (если есть запрос)
         if !query.isEmpty {
             categories = categories.compactMap { category in
                 let filtered = category.trackers.filter { $0.name.lowercased().contains(query) }
@@ -572,7 +586,6 @@ extension TrackersViewController {
             }
         }
         
-        // 3) Применяем выбранный фильтр
         switch currentFilter {
         case .all:
             break

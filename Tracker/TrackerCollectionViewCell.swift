@@ -129,6 +129,9 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         guard let tracker = tracker else { 
             return 
         }
+
+        AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "track")
+        
         onCompletionToggled?(tracker)
     }
     

@@ -13,7 +13,50 @@ final class AnalyticsManager {
     
     private init() {}
     
-    // MARK: - Tracker Events
+    // MARK: - AppMetrica Events (согласно требованиям учебника)
+    
+    func trackScreenOpen(screen: String) {
+        let parameters: [String: Any] = [
+            "event": "open",
+            "screen": screen
+        ]
+        
+        YMMYandexMetrica.reportEvent("event", parameters: parameters)
+        
+        #if DEBUG
+        print("📊 Отправлено событие: screen_open - \(screen)")
+        #endif
+    }
+    
+    func trackScreenClose(screen: String) {
+        let parameters: [String: Any] = [
+            "event": "close",
+            "screen": screen
+        ]
+        
+        YMMYandexMetrica.reportEvent("event", parameters: parameters)
+        
+        #if DEBUG
+        print("📊 Отправлено событие: screen_close - \(screen)")
+        #endif
+    }
+    
+    func trackButtonClick(screen: String, item: String) {
+        let parameters: [String: Any] = [
+            "event": "click",
+            "screen": screen,
+            "item": item
+        ]
+        
+        YMMYandexMetrica.reportEvent("event", parameters: parameters)
+        
+        #if DEBUG
+        print("📊 Отправлено событие: button_click - \(screen)/\(item)")
+        #endif
+    }
+    
+    // MARK: - Legacy Events (оставляем для совместимости)
+    
     func trackTrackerCreated(name: String, category: String, schedule: [Int]) {
         let parameters: [String: Any] = [
             "tracker_name": name,
@@ -125,5 +168,53 @@ final class AnalyticsManager {
         ]
         
         YMMYandexMetrica.reportEvent("search_performed", parameters: parameters)
+    }
+    
+    // MARK: - Test Methods (для отладки)
+    
+    /// Проверяет статус аналитики
+    func checkAnalyticsStatus() {
+        print("📊 ===== СТАТУС АНАЛИТИКИ =====")
+        print("📊 API ключ: 2f9bfdfc-6406-4df5-a776-e7d876db84cd")
+        print("📊 Версия SDK: \(YMMYandexMetrica.libraryVersion)")
+        print("📊 SDK загружен и готов к работе")
+        print("📊 ===========================")
+    }
+
+    func testAnalytics() {
+        print("🧪 ===== ТЕСТИРОВАНИЕ АНАЛИТИКИ =====")
+        print("📊 API ключ: 2f9bfdfc-6406-4df5-a776-e7d876db84cd")
+        print("📊 Версия SDK: \(YMMYandexMetrica.libraryVersion)")
+        print("📊 SDK загружен и готов к работе")
+        print("")
+        
+        print("🧪 Отправляем тестовые события...")
+        
+        trackScreenOpen(screen: "Main")
+        print("✅ Отправлено событие открытия экрана Main")
+        
+        trackButtonClick(screen: "Main", item: "add_track")
+        print("✅ Отправлено событие тапа на кнопку add_track")
+        
+        trackButtonClick(screen: "Main", item: "track")
+        print("✅ Отправлено событие тапа на трекер")
+        
+        trackButtonClick(screen: "Main", item: "filter")
+        print("✅ Отправлено событие тапа на фильтр")
+        
+        trackButtonClick(screen: "Main", item: "edit")
+        print("✅ Отправлено событие редактирования")
+        
+        trackButtonClick(screen: "Main", item: "delete")
+        print("✅ Отправлено событие удаления")
+        
+        trackScreenClose(screen: "Main")
+        print("✅ Отправлено событие закрытия экрана Main")
+        
+        print("")
+        print("🎉 Все тестовые события отправлены!")
+        print("📊 Проверьте логи YandexMobileMetrica в консоли")
+        print("📊 События должны появиться в личном кабинете через несколько минут")
+        print("🧪 =================================")
     }
 }
