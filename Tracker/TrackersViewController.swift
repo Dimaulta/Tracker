@@ -371,14 +371,8 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Tracker Management
     private func toggleTrackerCompletion(for tracker: Tracker) {
-        let calendar = Calendar.current
-        let today = Date()
-      
-        let canBeCompleted = calendar.compare(currentDate, to: today, toGranularity: .day) != .orderedDescending
-        
-        if !canBeCompleted {
-            return
-        }
+        // Разрешаем выполнение трекера в любой день, если он запланирован на этот день
+        // Убираем ограничение на будущие дни
         
         let wasCompleted = isTrackerCompleted(for: tracker)
         recordStore.toggleTrackerCompletion(trackerId: tracker.id, date: currentDate)

@@ -11,7 +11,7 @@ import CoreData
 struct StatisticsData {
     let bestPeriod: Int
     let idealDays: Int
-    let completedTrackers: Int
+    let completedTrackers: Int // Общее количество выполненных трекеров (записей)
     let averageValue: Double
 }
 
@@ -104,9 +104,10 @@ final class StatisticsManager: StatisticsManagerProtocol {
     }
     
     func getCompletedTrackers() -> Int {
+        // Возвращаем общее количество выполненных трекеров (записей), 
+        // а не количество уникальных трекеров
         let records = coreDataManager.fetchRecords()
-        let uniqueCompletedTrackers = Set(records.map { $0.trackerId })
-        return uniqueCompletedTrackers.count
+        return records.count
     }
     
     func getAverageValue() -> Double {
