@@ -98,6 +98,7 @@ final class TrackersViewController: UIViewController {
         AnalyticsManager.shared.trackScreenClose(screen: "Main")
     }
     
+    
     private func setupUI() {
         view.backgroundColor = UIColor(named: "WhiteDay")
         setupNavigationBar()
@@ -106,12 +107,9 @@ final class TrackersViewController: UIViewController {
         setupSearchBar()
         setupDatePicker()
         setupCategoryHeader()
-        setupFiltersButton()
         setupCollectionView()
+        setupFiltersButton() // Добавляем кнопку ПОСЛЕ CollectionView
         setupEmptyState()
-        
-        // Делаем кнопку поверх коллекции
-        view.bringSubviewToFront(filtersButton)
     }
     
     private func setupNavigationBar() {
@@ -281,6 +279,7 @@ final class TrackersViewController: UIViewController {
         applyFiltersAndSearch()
     }
     
+    
     private func setupCollectionView() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = UIColor.clear
@@ -307,7 +306,7 @@ final class TrackersViewController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: categoryHeaderLabel.bottomAnchor, constant: 6),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -120) // Оставляем место для кнопок
         ])
     }
 
@@ -316,38 +315,35 @@ final class TrackersViewController: UIViewController {
         filtersButton.setTitle(NSLocalizedString("filters.title", comment: "Фильтры"), for: .normal)
         filtersButton.setTitleColor(UIColor.white, for: .normal)
         filtersButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
-        filtersButton.backgroundColor = UIColor.clear
-        
-        // Создаем синий фон только для текста
-        let blueBackgroundView = UIView()
-        blueBackgroundView.backgroundColor = UIColor(named: "Blue")
-        blueBackgroundView.layer.cornerRadius = 16
-        blueBackgroundView.translatesAutoresizingMaskIntoConstraints = false
-        filtersButton.insertSubview(blueBackgroundView, at: 0)
+        filtersButton.backgroundColor = UIColor(named: "Blue")
+        filtersButton.layer.cornerRadius = 16
         
         filtersButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 20, bottom: 14, right: 20)
         filtersButton.addTarget(self, action: #selector(filtersButtonTapped), for: .touchUpInside)
-        view.addSubview(filtersButton)
         
-        // Привязываем синий фон к тексту
+        // Добавляем кнопку в view и поднимаем её наверх
+        view.addSubview(filtersButton)
+        view.bringSubviewToFront(filtersButton) // Явно поднимаем наверх
+        
         NSLayoutConstraint.activate([
-            blueBackgroundView.topAnchor.constraint(equalTo: filtersButton.topAnchor),
-            blueBackgroundView.leadingAnchor.constraint(equalTo: filtersButton.leadingAnchor),
-            blueBackgroundView.trailingAnchor.constraint(equalTo: filtersButton.trailingAnchor),
-            blueBackgroundView.bottomAnchor.constraint(equalTo: filtersButton.bottomAnchor)
-        ])
-
-        NSLayoutConstraint.activate([
-            filtersButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 130),
-            filtersButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -130),
+            filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            filtersButton.widthAnchor.constraint(equalToConstant: 200),
             filtersButton.heightAnchor.constraint(equalToConstant: 50),
-            filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
+            filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20) // Внизу экрана, но выше TabBar
         ])
         
         // Убираем любые фоны и тени
         filtersButton.layer.shadowOpacity = 0
         filtersButton.layer.shadowRadius = 0
         filtersButton.layer.shadowOffset = CGSize.zero
+        
+        // Убеждаемся, что кнопка всегда видна и кликабельна
+        filtersButton.isUserInteractionEnabled = true
+        filtersButton.isHidden = false
+        
+        
+        // Убираем отладочную рамку
+        filtersButton.layer.borderWidth = 0
     }
     
     // MARK: - Data Management
@@ -406,7 +402,8 @@ final class TrackersViewController: UIViewController {
         let isEmpty = visibleCategories.isEmpty
         let hasTrackersForCurrentDate = hasTrackersForDate(currentDate)
         
-        filtersButton.isHidden = !hasTrackersForCurrentDate
+        // Кнопка фильтров всегда видна, если есть трекеры
+        filtersButton.isHidden = isEmpty
         
         emptyStateImageView.isHidden = !isEmpty
         emptyStateLabel.isHidden = !isEmpty
