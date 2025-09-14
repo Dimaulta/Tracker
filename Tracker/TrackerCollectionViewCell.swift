@@ -127,10 +127,35 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         guard let tracker = tracker else { 
             return 
         }
+        
+        // Проверяем, не пытается ли пользователь выполнить привычку заранее
+        let today = Calendar.current.startOfDay(for: Date())
+        let selectedDay = Calendar.current.startOfDay(for: selectedDate)
+        
+        if selectedDay > today {
+            // Показываем анимацию "запрета" для будущих дат
+            showDenialAnimation()
+            return
+        }
 
         AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "track")
         
         onCompletionToggled?(tracker)
+    }
+    
+    // MARK: - Animation
+    private func showDenialAnimation() {
+        // Анимация покачивания влево-вправо
+        let shakeAnimation = CAKeyframeAnimation(keyPath: "transform.translation.x")
+        shakeAnimation.timingFunction = CAMediaTimingFunction(name: .linear)
+        shakeAnimation.duration = 0.5
+        shakeAnimation.values = [-10, 10, -8, 8, -5, 5, 0]
+        
+        completionButton.layer.add(shakeAnimation, forKey: "shake")
+        
+        // Небольшая вибрация (если доступна)
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
     
     
@@ -189,7 +214,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
 
             completionButton.setImage(nil, for: .normal)
             completionButton.setTitle("✓", for: .normal)
-            completionButton.setTitleColor(UIColor.white, for: .normal)
+            completionButton.setTitleColor(UIColor(named: "WhiteNight"), for: .normal)
             completionButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold) 
             completionButton.backgroundColor = cellColor.withAlphaComponent(0.3) 
             completionButton.alpha = 1.0
