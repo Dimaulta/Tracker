@@ -31,6 +31,8 @@ final class TrackersViewController: UIViewController {
     private var currentFilter: TrackerFilter = .all
     private var searchText: String = ""
     private var visibleCategories: [TrackerCategory] = []
+    private var deleteConfirmationAlert: DeleteConfirmationAlert?
+    private var currentTrackerToDelete: Tracker?
     
     
     // MARK: - Initialization
@@ -430,22 +432,41 @@ final class TrackersViewController: UIViewController {
         // Отправляем аналитику согласно требованиям AppMetrica
         AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "delete")
         
-        let alert = UIAlertController(
-            title: NSLocalizedString("tracker.delete.alert.title", comment: "Удалить привычку?"),
-            message: NSLocalizedString("tracker.delete.alert.message", comment: "Сообщение удаления трекера"),
-            preferredStyle: .alert
-        )
+        hideDeleteConfirmationAlert()
         
-        alert.addAction(UIAlertAction(title: NSLocalizedString("action.cancel", comment: "Отмена"), style: .cancel))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("action.delete", comment: "Удалить"), style: .destructive) { [weak self] _ in
-            self?.performDeleteTracker(tracker)
-        })
+        let alert = DeleteConfirmationAlert()
+        alert.delegate = self
+        alert.show(in: view)
+        deleteConfirmationAlert = alert
         
-        present(alert, animated: true)
+        // Сохраняем трекер для удаления
+        currentTrackerToDelete = tracker
     }
     
     private func performDeleteTracker(_ tracker: Tracker) {
         viewModel.deleteTracker(tracker)
+    }
+    
+    // MARK: - Delete Confirmation Alert Management
+    private func hideDeleteConfirmationAlert() {
+        deleteConfirmationAlert?.hide { [weak self] in
+            self?.deleteConfirmationAlert = nil
+            self?.currentTrackerToDelete = nil
+        }
+    }
+}
+
+// MARK: - DeleteConfirmationAlertDelegate
+extension TrackersViewController: DeleteConfirmationAlertDelegate {
+    func didConfirmDelete() {
+        guard let tracker = currentTrackerToDelete else { return }
+        
+        hideDeleteConfirmationAlert()
+        performDeleteTracker(tracker)
+    }
+    
+    func didCancelDelete() {
+        hideDeleteConfirmationAlert()
     }
 }
 
