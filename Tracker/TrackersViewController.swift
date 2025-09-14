@@ -109,6 +109,9 @@ final class TrackersViewController: UIViewController {
         setupFiltersButton()
         setupCollectionView()
         setupEmptyState()
+        
+        // Делаем кнопку поверх коллекции
+        view.bringSubviewToFront(filtersButton)
     }
     
     private func setupNavigationBar() {
@@ -171,7 +174,7 @@ final class TrackersViewController: UIViewController {
         view.addSubview(categoryHeaderLabel)
         
         NSLayoutConstraint.activate([
-            categoryHeaderLabel.topAnchor.constraint(equalTo: searchContainerView.bottomAnchor, constant: 34),
+            categoryHeaderLabel.topAnchor.constraint(equalTo: searchContainerView.bottomAnchor, constant: 1),
             categoryHeaderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
             categoryHeaderLabel.heightAnchor.constraint(equalToConstant: 22)
         ])
@@ -290,9 +293,13 @@ final class TrackersViewController: UIViewController {
         layout.scrollDirection = .vertical
         layout.minimumInteritemSpacing = 9 
         layout.minimumLineSpacing = 8
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 16, right: 16)
         
         collectionView.setCollectionViewLayout(layout, animated: false)
+        
+        // Добавляем отступы снизу, чтобы контент не скрывался под кнопкой и таббаром
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 100, right: 0)
+        collectionView.scrollIndicatorInsets = collectionView.contentInset
         
         view.addSubview(collectionView)
         
@@ -300,7 +307,7 @@ final class TrackersViewController: UIViewController {
             collectionView.topAnchor.constraint(equalTo: categoryHeaderLabel.bottomAnchor, constant: 6),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: filtersButton.topAnchor, constant: -16)
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 
@@ -309,11 +316,26 @@ final class TrackersViewController: UIViewController {
         filtersButton.setTitle(NSLocalizedString("filters.title", comment: "Фильтры"), for: .normal)
         filtersButton.setTitleColor(UIColor.white, for: .normal)
         filtersButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
-        filtersButton.backgroundColor = UIColor(named: "Blue")
-        filtersButton.layer.cornerRadius = 16
+        filtersButton.backgroundColor = UIColor.clear
+        
+        // Создаем синий фон только для текста
+        let blueBackgroundView = UIView()
+        blueBackgroundView.backgroundColor = UIColor(named: "Blue")
+        blueBackgroundView.layer.cornerRadius = 16
+        blueBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        filtersButton.insertSubview(blueBackgroundView, at: 0)
+        
         filtersButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 20, bottom: 14, right: 20)
         filtersButton.addTarget(self, action: #selector(filtersButtonTapped), for: .touchUpInside)
         view.addSubview(filtersButton)
+        
+        // Привязываем синий фон к тексту
+        NSLayoutConstraint.activate([
+            blueBackgroundView.topAnchor.constraint(equalTo: filtersButton.topAnchor),
+            blueBackgroundView.leadingAnchor.constraint(equalTo: filtersButton.leadingAnchor),
+            blueBackgroundView.trailingAnchor.constraint(equalTo: filtersButton.trailingAnchor),
+            blueBackgroundView.bottomAnchor.constraint(equalTo: filtersButton.bottomAnchor)
+        ])
 
         NSLayoutConstraint.activate([
             filtersButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 130),
@@ -321,6 +343,11 @@ final class TrackersViewController: UIViewController {
             filtersButton.heightAnchor.constraint(equalToConstant: 50),
             filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
+        
+        // Убираем любые фоны и тени
+        filtersButton.layer.shadowOpacity = 0
+        filtersButton.layer.shadowRadius = 0
+        filtersButton.layer.shadowOffset = CGSize.zero
     }
     
     // MARK: - Data Management
