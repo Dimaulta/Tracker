@@ -31,7 +31,6 @@ final class TrackersViewController: UIViewController {
     private var currentFilter: TrackerFilter = .all
     private var searchText: String = ""
     private var visibleCategories: [TrackerCategory] = []
-    private var deleteConfirmationAlert: DeleteConfirmationAlert?
     private var currentTrackerToDelete: Tracker?
     
     
@@ -432,42 +431,45 @@ final class TrackersViewController: UIViewController {
         // Отправляем аналитику согласно требованиям AppMetrica
         AnalyticsManager.shared.trackButtonClick(screen: "Main", item: "delete")
         
-        hideDeleteConfirmationAlert()
-        
-        let alert = DeleteConfirmationAlert()
-        alert.delegate = self
-        alert.show(in: view)
-        deleteConfirmationAlert = alert
-        
         // Сохраняем трекер для удаления
         currentTrackerToDelete = tracker
+        
+        // Стандартный iOS алерт с actionSheet стилем
+        let alert = UIAlertController(
+            title: "Уверены что хотите удалить трекер?",
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        
+        // Кнопка удаления (красная)
+        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            guard let tracker = self?.currentTrackerToDelete else { return }
+            self?.performDeleteTracker(tracker)
+            self?.currentTrackerToDelete = nil
+        }
+        
+        // Кнопка отмены
+        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel) { [weak self] _ in
+            self?.currentTrackerToDelete = nil
+        }
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        // Для iPad нужно указать sourceView
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        present(alert, animated: true)
     }
     
     private func performDeleteTracker(_ tracker: Tracker) {
         viewModel.deleteTracker(tracker)
     }
     
-    // MARK: - Delete Confirmation Alert Management
-    private func hideDeleteConfirmationAlert() {
-        deleteConfirmationAlert?.hide { [weak self] in
-            self?.deleteConfirmationAlert = nil
-            self?.currentTrackerToDelete = nil
-        }
-    }
-}
-
-// MARK: - DeleteConfirmationAlertDelegate
-extension TrackersViewController: DeleteConfirmationAlertDelegate {
-    func didConfirmDelete() {
-        guard let tracker = currentTrackerToDelete else { return }
-        
-        hideDeleteConfirmationAlert()
-        performDeleteTracker(tracker)
-    }
-    
-    func didCancelDelete() {
-        hideDeleteConfirmationAlert()
-    }
 }
 
 // MARK: - UICollectionViewDataSource
