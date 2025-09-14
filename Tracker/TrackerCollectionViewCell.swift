@@ -36,9 +36,9 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         contentView.backgroundColor = UIColor.clear
         contentView.isUserInteractionEnabled = true
         
-        // Добавляем контекстное меню для долгого нажатия
+        // Добавляем контекстное меню для долгого нажатия на цветную часть
         let contextMenuInteraction = UIContextMenuInteraction(delegate: self)
-        contentView.addInteraction(contextMenuInteraction) 
+        containerView.addInteraction(contextMenuInteraction) 
         
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -222,13 +222,17 @@ extension TrackerCollectionViewCell: UIContextMenuInteractionDelegate {
         
         return UIContextMenuConfiguration(
             identifier: tracker.id as NSCopying,
+            previewProvider: { [weak self] in
+                // Возвращаем nil для использования стандартного preview
+                return nil
+            },
             actionProvider: { [weak self] _ in
                 // Создаем действия меню
                 guard let self = self, let tracker = self.tracker else { return nil }
                 
-                  let editAction = UIAction(
-                      title: NSLocalizedString("action.edit", comment: "Редактировать")
-                  ) { _ in
+                let editAction = UIAction(
+                    title: NSLocalizedString("action.edit", comment: "Редактировать")
+                ) { _ in
                     // Действие будет обработано в TrackersViewController
                     NotificationCenter.default.post(
                         name: NSNotification.Name("TrackerEditRequested"),
@@ -236,10 +240,10 @@ extension TrackerCollectionViewCell: UIContextMenuInteractionDelegate {
                     )
                 }
                 
-                  let deleteAction = UIAction(
-                      title: NSLocalizedString("action.delete", comment: "Удалить"),
-                      attributes: .destructive
-                  ) { _ in
+                let deleteAction = UIAction(
+                    title: NSLocalizedString("action.delete", comment: "Удалить"),
+                    attributes: .destructive
+                ) { _ in
                     // Действие будет обработано в TrackersViewController
                     NotificationCenter.default.post(
                         name: NSNotification.Name("TrackerDeleteRequested"),
@@ -247,7 +251,7 @@ extension TrackerCollectionViewCell: UIContextMenuInteractionDelegate {
                     )
                 }
                 
-                  return UIMenu(children: [editAction, deleteAction])
+                return UIMenu(children: [editAction, deleteAction])
             }
         )
     }
