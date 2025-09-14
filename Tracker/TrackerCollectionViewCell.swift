@@ -22,7 +22,6 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private var tracker: Tracker?
     private var selectedDate: Date = Date()
     var onCompletionToggled: ((Tracker) -> Void)?
-    var onLongPress: ((Tracker) -> Void)?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -37,10 +36,9 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         contentView.backgroundColor = UIColor.clear
         contentView.isUserInteractionEnabled = true
         
-        // Добавляем длинное нажатие для контекстного меню
-        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
-        longPressGesture.minimumPressDuration = 0.5
-        contentView.addGestureRecognizer(longPressGesture) 
+        // Добавляем контекстное меню для долгого нажатия
+        let contextMenuInteraction = UIContextMenuInteraction(delegate: self)
+        contentView.addInteraction(contextMenuInteraction) 
         
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         headerLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -135,12 +133,6 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         onCompletionToggled?(tracker)
     }
     
-    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
-        if gesture.state == .began {
-            guard let tracker = tracker else { return }
-            onLongPress?(tracker)
-        }
-    }
     
     func configure(with tracker: Tracker, selectedDate: Date, isCompleted: Bool, completedCount: Int) {
         self.tracker = tracker
@@ -220,5 +212,43 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private func getDayText(for count: Int) -> String {
         let format = NSLocalizedString("days.count", comment: "N дней (плюрализация)")
         return String.localizedStringWithFormat(format, count)
+    }
+}
+
+// MARK: - UIContextMenuInteractionDelegate
+extension TrackerCollectionViewCell: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        guard let tracker = tracker else { return nil }
+        
+        return UIContextMenuConfiguration(
+            identifier: tracker.id as NSCopying,
+            actionProvider: { [weak self] _ in
+                // Создаем действия меню
+                guard let self = self, let tracker = self.tracker else { return nil }
+                
+                  let editAction = UIAction(
+                      title: NSLocalizedString("action.edit", comment: "Редактировать")
+                  ) { _ in
+                    // Действие будет обработано в TrackersViewController
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("TrackerEditRequested"),
+                        object: tracker
+                    )
+                }
+                
+                  let deleteAction = UIAction(
+                      title: NSLocalizedString("action.delete", comment: "Удалить"),
+                      attributes: .destructive
+                  ) { _ in
+                    // Действие будет обработано в TrackersViewController
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("TrackerDeleteRequested"),
+                        object: tracker
+                    )
+                }
+                
+                  return UIMenu(children: [editAction, deleteAction])
+            }
+        )
     }
 } 

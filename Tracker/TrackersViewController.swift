@@ -32,8 +32,6 @@ final class TrackersViewController: UIViewController {
     private var searchText: String = ""
     private var visibleCategories: [TrackerCategory] = []
     
-    // MARK: - Context Menu
-    private var currentTracker: Tracker?
     
     // MARK: - Initialization
     init(viewModel: TrackerViewModelProtocol = TrackerViewModel()) {
@@ -43,6 +41,10 @@ final class TrackersViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Helpers
@@ -73,6 +75,7 @@ final class TrackersViewController: UIViewController {
         
         setupUI()
         setupBindings()
+        setupNotificationObservers()
         viewModel.loadData()
         applyFiltersAndSearch()
     }
@@ -328,6 +331,32 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTrackerEditRequested(_:)),
+            name: NSNotification.Name("TrackerEditRequested"),
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTrackerDeleteRequested(_:)),
+            name: NSNotification.Name("TrackerDeleteRequested"),
+            object: nil
+        )
+    }
+    
+    @objc private func handleTrackerEditRequested(_ notification: Notification) {
+        guard let tracker = notification.object as? Tracker else { return }
+        editTracker(tracker)
+    }
+    
+    @objc private func handleTrackerDeleteRequested(_ notification: Notification) {
+        guard let tracker = notification.object as? Tracker else { return }
+        deleteTracker(tracker)
+    }
+    
     private func addTracker(_ tracker: Tracker, category: TrackerCategory) {
         viewModel.createTracker(tracker, category: category)
     }
@@ -386,48 +415,6 @@ final class TrackersViewController: UIViewController {
         updateUI()
     }
     
-    // MARK: - Context Menu
-    private func showContextMenu(for tracker: Tracker) {
-        currentTracker = tracker
-        
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        
-        // Кнопка "Закрепить"
-        let pinAction = UIAlertAction(title: NSLocalizedString("action.pin", comment: "Закрепить"), style: .default) { [weak self] _ in
-            self?.pinTracker(tracker)
-        }
-        actionSheet.addAction(pinAction)
-        
-        // Кнопка "Редактировать"
-        let editAction = UIAlertAction(title: NSLocalizedString("action.edit", comment: "Редактировать"), style: .default) { [weak self] _ in
-            self?.editTracker(tracker)
-        }
-        actionSheet.addAction(editAction)
-        
-        // Кнопка "Удалить"
-        let deleteAction = UIAlertAction(title: NSLocalizedString("action.delete", comment: "Удалить"), style: .destructive) { [weak self] _ in
-            self?.deleteTracker(tracker)
-        }
-        actionSheet.addAction(deleteAction)
-        
-        // Кнопка "Отмена"
-        let cancelAction = UIAlertAction(title: NSLocalizedString("action.cancel", comment: "Отмена"), style: .cancel)
-        actionSheet.addAction(cancelAction)
-        
-        // Для iPad
-        if let popover = actionSheet.popoverPresentationController {
-            popover.sourceView = view
-            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
-            popover.permittedArrowDirections = []
-        }
-        
-        present(actionSheet, animated: true)
-    }
-    
-    private func pinTracker(_ tracker: Tracker) {
-        // TODO: Реализовать закрепление трекера
-        print("Закрепить трекер: \(tracker.name)")
-    }
     
     private func editTracker(_ tracker: Tracker) {
         // Отправляем аналитику согласно требованиям AppMetrica
@@ -482,10 +469,6 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         cell.onCompletionToggled = { [weak self] tracker in
             self?.toggleTrackerCompletion(for: tracker)
-        }
-        
-        cell.onLongPress = { [weak self] tracker in
-            self?.showContextMenu(for: tracker)
         }
         
         cell.configure(with: tracker, selectedDate: currentDate, isCompleted: isCompleted, completedCount: completedCount)
