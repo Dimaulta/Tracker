@@ -1,13 +1,17 @@
 //
-//  CreateHabitViewController.swift
+//  EditTrackerViewController.swift
 //  Tracker
 //
-//  Created by Ульта on 26.07.2025.
+//  Created by Ульта on 05.09.2025.
 //
 
 import UIKit
 
-final class CreateHabitViewController: UIViewController {
+protocol EditTrackerViewControllerDelegate: AnyObject {
+    func didUpdateTracker(_ tracker: Tracker, newName: String, newEmoji: String, newColor: String, newSchedule: [Int], newCategory: TrackerCategory?)
+}
+
+final class EditTrackerViewController: UIViewController {
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -21,7 +25,7 @@ final class CreateHabitViewController: UIViewController {
     private let scheduleValueLabel = UILabel()
     private let dividerView = UIView()
     private let cancelButton = UIButton(type: .system)
-    private let createButton = UIButton(type: .system)
+    private let saveButton = UIButton(type: .system)
     private let characterLimitLabel = UILabel()
     private let categoryAreaView = UIView()
     private let scheduleAreaView = UIView()
@@ -46,7 +50,7 @@ final class CreateHabitViewController: UIViewController {
     private let maxCharacterCount = 38
     private var isFormValid = false {
         didSet {
-            updateCreateButtonState()
+            updateSaveButtonState()
         }
     }
     private var selectedDays: Set<Int> = []
@@ -69,14 +73,64 @@ final class CreateHabitViewController: UIViewController {
     ]
     
     // MARK: - Delegate
-    weak var delegate: CreateHabitViewControllerDelegate?
+    weak var delegate: EditTrackerViewControllerDelegate?
+    private let tracker: Tracker
+    
+    // MARK: - Initialization
+    init(tracker: Tracker) {
+        self.tracker = tracker
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupInitialData()
         setupUI()
         setupConstraints()
         setupKeyboardHandling()
+        
+        // Обновляем UI после настройки всех элементов
+        updateUIWithInitialData()
+    }
+    
+    private func setupInitialData() {
+        nameTextField.text = tracker.name
+        selectedEmoji = tracker.emoji
+        selectedColor = tracker.color
+        selectedDays = Set(tracker.schedule)
+        
+        // Найдем категорию трекера
+        let categoryStore = TrackerCategoryStore()
+        let categories = categoryStore.fetchCategories()
+        selectedCategory = categories.first { category in
+            category.trackers.contains { $0.id == tracker.id }
+        }
+        
+        // Валидируем форму после установки начальных данных
+        validateForm()
+    }
+    
+    private func updateUIWithInitialData() {
+        // Обновляем категорию
+        if let category = selectedCategory {
+            categoryValueLabel.text = category.title
+            categoryValueLabel.isHidden = false
+        }
+        
+        // Обновляем расписание
+        if !selectedDays.isEmpty {
+            scheduleValueLabel.text = getScheduleText()
+            scheduleValueLabel.isHidden = false
+        }
+        
+        // Обновляем коллекции
+        emojiCollectionView.reloadData()
+        colorCollectionView.reloadData()
     }
     
     private func setupUI() {
@@ -94,7 +148,7 @@ final class CreateHabitViewController: UIViewController {
     
     private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Новая привычка"
+        titleLabel.text = NSLocalizedString("habit.edit.title", comment: "Редактирование привычки")
         titleLabel.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(named: "BlackDay")
         titleLabel.textAlignment = .center
@@ -103,7 +157,7 @@ final class CreateHabitViewController: UIViewController {
     
     private func setupNameTextField() {
         nameTextField.translatesAutoresizingMaskIntoConstraints = false
-        nameTextField.placeholder = "Введите название трекера"
+        nameTextField.placeholder = NSLocalizedString("habit.name.placeholder", comment: "Плейсхолдер имени трекера")
         nameTextField.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         nameTextField.textColor = UIColor(named: "BlackDay")
         nameTextField.backgroundColor = UIColor(named: "BackgroundDay")
@@ -132,7 +186,7 @@ final class CreateHabitViewController: UIViewController {
         contentView.addSubview(categoryContainerView)
         
         categoryLabel.translatesAutoresizingMaskIntoConstraints = false
-        categoryLabel.text = "Категория"
+        categoryLabel.text = NSLocalizedString("category.title", comment: "Категория")
         categoryLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         categoryLabel.textColor = UIColor(named: "BlackDay")
         categoryContainerView.addSubview(categoryLabel)
@@ -154,7 +208,7 @@ final class CreateHabitViewController: UIViewController {
         categoryContainerView.addSubview(dividerView)
         
         scheduleLabel.translatesAutoresizingMaskIntoConstraints = false
-        scheduleLabel.text = "Расписание"
+        scheduleLabel.text = NSLocalizedString("schedule.title", comment: "Расписание")
         scheduleLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         scheduleLabel.textColor = UIColor(named: "BlackDay")
         categoryContainerView.addSubview(scheduleLabel)
@@ -165,7 +219,7 @@ final class CreateHabitViewController: UIViewController {
         categoryContainerView.addSubview(scheduleArrowImageView)
         
         scheduleValueLabel.translatesAutoresizingMaskIntoConstraints = false
-        scheduleValueLabel.text = "Каждый день"
+        scheduleValueLabel.text = ""
         scheduleValueLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         scheduleValueLabel.textColor = UIColor(named: "Gray")
         scheduleValueLabel.isHidden = true
@@ -194,7 +248,7 @@ final class CreateHabitViewController: UIViewController {
     
     private func setupButtons() {
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setTitle("Отменить", for: .normal)
+        cancelButton.setTitle(NSLocalizedString("button.cancel", comment: "Отменить"), for: .normal)
         cancelButton.setTitleColor(UIColor(named: "Red"), for: .normal)
         cancelButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
         cancelButton.backgroundColor = UIColor(named: "WhiteDay")
@@ -204,15 +258,15 @@ final class CreateHabitViewController: UIViewController {
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         view.addSubview(cancelButton)
         
-        createButton.translatesAutoresizingMaskIntoConstraints = false
-        createButton.setTitle("Создать", for: .normal)
-        createButton.setTitleColor(UIColor.white, for: .normal)
-        createButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
-        createButton.backgroundColor = UIColor.systemGray
-        createButton.layer.cornerRadius = 16
-        createButton.isEnabled = false
-        createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
-        view.addSubview(createButton)
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
+        saveButton.setTitle(NSLocalizedString("button.save", comment: "Сохранить"), for: .normal)
+        saveButton.setTitleColor(UIColor(named: "WhiteDay"), for: .normal)
+        saveButton.titleLabel?.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
+        saveButton.backgroundColor = UIColor(named: "BlackDay")
+        saveButton.layer.cornerRadius = 16
+        saveButton.isEnabled = true
+        saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+        view.addSubview(saveButton)
     }
     
     private func setupScrollView() {
@@ -230,7 +284,7 @@ final class CreateHabitViewController: UIViewController {
     
     private func setupCharacterLimitLabel() {
         characterLimitLabel.translatesAutoresizingMaskIntoConstraints = false
-        characterLimitLabel.text = "Ограничение 38 символов"
+        characterLimitLabel.text = NSLocalizedString("limit.38", comment: "Ограничение длины")
         characterLimitLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
         characterLimitLabel.textColor = UIColor(named: "Red")
         characterLimitLabel.textAlignment = .center
@@ -239,7 +293,6 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func setupEmojiSection() {
-        
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
         emojiLabel.text = "Emoji"
         emojiLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -264,7 +317,6 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func setupColorSection() {
-        
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
         colorLabel.text = "Цвет"
         colorLabel.font = UIFont(name: "SFPro-Bold", size: 19) ?? UIFont.boldSystemFont(ofSize: 19)
@@ -295,9 +347,6 @@ final class CreateHabitViewController: UIViewController {
         
         scheduleLabelTopConstraint = scheduleLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 91)
         scheduleValueLabelTopConstraint = scheduleValueLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 106)
-        
-        categoryValueLabel.isHidden = true
-        scheduleValueLabel.isHidden = true
         
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -388,10 +437,10 @@ final class CreateHabitViewController: UIViewController {
             cancelButton.widthAnchor.constraint(equalToConstant: 166),
             cancelButton.heightAnchor.constraint(equalToConstant: 60),
             
-            createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            createButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            createButton.widthAnchor.constraint(equalToConstant: 161),
-            createButton.heightAnchor.constraint(equalToConstant: 60)
+            saveButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            saveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            saveButton.widthAnchor.constraint(equalToConstant: 161),
+            saveButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
@@ -405,17 +454,13 @@ final class CreateHabitViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
-
-    
-    private func updateCreateButtonState() {
+    private func updateSaveButtonState() {
         if isFormValid {
-            createButton.backgroundColor = UIColor(named: "BlackDay")
-            createButton.setTitleColor(UIColor(named: "WhiteNight"), for: .normal)
-            createButton.isEnabled = true
+            saveButton.backgroundColor = UIColor(named: "BlackDay")
+            saveButton.isEnabled = true
         } else {
-            createButton.backgroundColor = UIColor.systemGray
-            createButton.setTitleColor(UIColor.white, for: .normal)
-            createButton.isEnabled = false
+            saveButton.backgroundColor = UIColor(named: "Gray")
+            saveButton.isEnabled = false
         }
     }
     
@@ -428,8 +473,30 @@ final class CreateHabitViewController: UIViewController {
         isFormValid = hasName && hasSchedule && hasEmoji && hasColor && hasCategory
     }
     
-    // MARK: - Actions
+    private func getScheduleText() -> String {
+        if selectedDays.isEmpty {
+            return ""
+        }
+        
+        let daysOfWeek = [
+            NSLocalizedString("weekday.short.1", comment: "Пн"),
+            NSLocalizedString("weekday.short.2", comment: "Вт"),
+            NSLocalizedString("weekday.short.3", comment: "Ср"),
+            NSLocalizedString("weekday.short.4", comment: "Чт"),
+            NSLocalizedString("weekday.short.5", comment: "Пт"),
+            NSLocalizedString("weekday.short.6", comment: "Сб"),
+            NSLocalizedString("weekday.short.7", comment: "Вс")
+        ]
+        let selectedDayNames = selectedDays.sorted().map { daysOfWeek[$0] }
+        
+        if selectedDays.count == 7 {
+            return NSLocalizedString("schedule.everyday", comment: "Каждый день")
+        } else {
+            return selectedDayNames.joined(separator: ", ")
+        }
+    }
     
+    // MARK: - Actions
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
@@ -448,10 +515,6 @@ final class CreateHabitViewController: UIViewController {
     }
     
     @objc private func scheduleTapped() {
-        if !(nameTextField.text?.isEmpty ?? true) {
-            categoryValueLabel.isHidden = false
-        }
-        
         let scheduleViewController = ScheduleViewController()
         scheduleViewController.modalPresentationStyle = .pageSheet
         
@@ -466,43 +529,29 @@ final class CreateHabitViewController: UIViewController {
         dismiss(animated: true)
     }
     
-        @objc private func createButtonTapped() {
-        guard let category = selectedCategory else { return }
-        
-        let tracker = Tracker(
-            name: nameTextField.text ?? "",
-            color: selectedColor,
-            emoji: selectedEmoji,
-            schedule: Array(selectedDays)
+    @objc private func saveButtonTapped() {
+        delegate?.didUpdateTracker(
+            tracker,
+            newName: nameTextField.text ?? "",
+            newEmoji: selectedEmoji,
+            newColor: selectedColor,
+            newSchedule: Array(selectedDays),
+            newCategory: selectedCategory
         )
-        
-        delegate?.didCreateTracker(tracker, category: category)
         
         dismiss(animated: true)
     }
     
-        private func updateScheduleValue(with days: Set<Int>) {
+    private func updateScheduleValue(with days: Set<Int>) {
         selectedDays = days
         
         if selectedDays.isEmpty {
             scheduleValueLabel.isHidden = true
             return
         }
-        if selectedDays.isEmpty {
-            scheduleValueLabel.isHidden = true
-            return
-        }
         
         scheduleValueLabel.isHidden = false
-        
-        let daysOfWeek = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
-        let selectedDayNames = selectedDays.sorted().map { daysOfWeek[$0] }
-        
-        if selectedDays.count == 7 {
-            scheduleValueLabel.text = "Каждый день"
-        } else {
-            scheduleValueLabel.text = selectedDayNames.joined(separator: ", ")
-        }
+        scheduleValueLabel.text = getScheduleText()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             UIView.animate(withDuration: 0.5, animations: {
@@ -517,8 +566,7 @@ final class CreateHabitViewController: UIViewController {
 }
 
 // MARK: - UITextFieldDelegate
-
-extension CreateHabitViewController: UITextFieldDelegate {
+extension EditTrackerViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
@@ -543,8 +591,7 @@ extension CreateHabitViewController: UITextFieldDelegate {
 }
 
 // MARK: - UICollectionViewDataSource
-
-extension CreateHabitViewController: UICollectionViewDataSource {
+extension EditTrackerViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView == emojiCollectionView {
             return emojis.count
@@ -573,22 +620,22 @@ extension CreateHabitViewController: UICollectionViewDataSource {
 }
 
 // MARK: - UICollectionViewDelegate
-
-extension CreateHabitViewController: UICollectionViewDelegate {
+extension EditTrackerViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == emojiCollectionView {
             selectedEmoji = emojis[indexPath.item]
             emojiCollectionView.reloadData()
+            validateForm()
         } else if collectionView == colorCollectionView {
             selectedColor = colors[indexPath.item]
             colorCollectionView.reloadData()
+            validateForm()
         }
     }
 }
 
 // MARK: - UIGestureRecognizerDelegate
-
-extension CreateHabitViewController: UIGestureRecognizerDelegate {
+extension EditTrackerViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         let location = touch.location(in: view)
         let textFieldFrame = nameTextField.convert(nameTextField.bounds, to: view)
@@ -602,8 +649,7 @@ extension CreateHabitViewController: UIGestureRecognizerDelegate {
 }
 
 // MARK: - UIScrollViewDelegate
-
-extension CreateHabitViewController: UIScrollViewDelegate {
+extension EditTrackerViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let scrollOffset = scrollView.contentOffset.y
         let shouldHideHeader = scrollOffset > 50
@@ -621,8 +667,7 @@ extension CreateHabitViewController: UIScrollViewDelegate {
 }
 
 // MARK: - CategoryViewControllerDelegate
-
-extension CreateHabitViewController: CategoryViewControllerDelegate {
+extension EditTrackerViewController: CategoryViewControllerDelegate {
     func didSelectCategory(_ category: TrackerCategory) {
         selectedCategory = category
         categoryValueLabel.text = category.title
@@ -638,4 +683,4 @@ extension CreateHabitViewController: CategoryViewControllerDelegate {
         
         validateForm()
     }
-} 
+}
